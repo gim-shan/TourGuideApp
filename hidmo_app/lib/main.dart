@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'screens/tsignup.dart';
-import 'screens/tsignin.dart';
-
-
+import 'screens/t_signup.dart';
+import 'screens/t_signin.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,15 +12,15 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
       title: 'HIDMO',
       theme: ThemeData(
-        useMaterial3: true,
-        fontFamily: 'Times New Roman',
+        primarySwatch: Colors.blue,
+        useMaterial3: true, 
       ),
+      home: const TSignup(),
       routes: {
-        '/': (context) => const TSignupPage(),
-        '/signnin': (context) => const TSigninPage(),
+        '/signup': (context) => const TSignup(), //check
+        '/signin': (context) => const TSignin(),
       },
     );
   }
