@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
       home: const TSignup(),
       routes: {
         '/signup': (context) => const TSignup(), //check
-        '/signin': (context) => const TSignin(),
+        '/signin': (context) => const TSignin(), //check
       },
     );
   }
