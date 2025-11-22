@@ -10,7 +10,7 @@ set(BINARY_NAME "project_1")
 # versions of CMake.
 cmake_policy(VERSION 3.14...3.25)
 
-# Define build configuration option.
+# Define build configuration common.
 get_property(IS_MULTICONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(IS_MULTICONFIG)
   set(CMAKE_CONFIGURATION_TYPES "Debug;Profile;Release"

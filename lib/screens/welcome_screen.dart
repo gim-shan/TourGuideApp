@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'onboarding.dart'; // Ensure your Onboarding page has this name
+import 'onboarding/onboarding_screen.dart'; // Ensure your Onboarding page has this name
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});

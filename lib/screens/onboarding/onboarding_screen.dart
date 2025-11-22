@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'auth_selection.dart'; // Import the next screen so we can navigate to it
+import '../auth_selection.dart'; // Import the next screen so we can navigate to it
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
