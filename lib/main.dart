@@ -1,23 +1,22 @@
 import 'package:flutter/material.dart';
-import 'screens/welcome_screen.dart'; // Import the welcome screen
+import 'screens/onboarding/welcome_screen.dart'; // Note the folder path!
 
 void main() {
-  runApp(const HidmoApp());
+  runApp(const MyApp());
 }
 
-class HidmoApp extends StatelessWidget {
-  const HidmoApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Hidmo Travel',
       debugShowCheckedModeBanner: false,
+      title: 'Sri Lanka Travel',
       theme: ThemeData(
-        primaryColor: const Color(0xFF1B3B2B),
-        scaffoldBackgroundColor: Colors.white,
+        useMaterial3: true,
+        primarySwatch: Colors.green,
       ),
-      // Start the app at WelcomeScreen
       home: const WelcomeScreen(),
     );
   }

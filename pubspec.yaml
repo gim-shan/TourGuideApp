@@ -1,4 +1,4 @@
-name: Newapp  # <--- මෙතන නම වෙනස් කරන්න (Folder එකේ නම දාන්න)
+name: App
 description: A new Flutter project.
 publish_to: 'none'
 version: 1.0.0+1
@@ -23,8 +23,6 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # Assets දානකොට මේ යට පේළි වල ඉස්සරහ තියෙන # අයින් කරන්න
-  # assets:
-  #   - assets/images/
+
   assets:
     - assets/images/
