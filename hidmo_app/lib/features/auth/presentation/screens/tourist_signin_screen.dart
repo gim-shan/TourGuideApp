@@ -17,6 +17,49 @@ class _TSignInScreenState extends State<TSignInScreen> {
 
   final Color primaryColor = const Color(0xFF1E4D3C);
 
+  void _checkSignIn(){
+    String email = txtEmail.text.trim();
+    String password = txtPassword.text.trim();
+
+    if (email.isEmpty) {
+      _errorMessage("Please enter your email.");
+      return;
+    }
+
+    if (password.isEmpty) {
+      _errorMessage("Please enter your password.");
+      return;
+    }
+
+    final emailFormat = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!emailFormat.hasMatch(email)) {
+      _errorMessage("Please enter a valid email address.");
+      return;
+    }
+
+  if (password.length < 6) {
+    _errorMessage("Password must be at least 6 characters.");
+    return;
+  }
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text("Sign-in successful!"),
+      backgroundColor: Colors.green,
+      ),
+    );
+  }
+
+  void _errorMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -131,8 +174,7 @@ class _TSignInScreenState extends State<TSignInScreen> {
                   width: double.infinity,
                   height: 64,
                   child: ElevatedButton(
-                    onPressed: () {
-                    },
+                    onPressed: _checkSignIn,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryColor,
                       shape: RoundedRectangleBorder(
