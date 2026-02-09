@@ -9,7 +9,6 @@ class GSignInScreen extends StatefulWidget {
 }
 
 class _GSignInScreenState extends State<GSignInScreen> {
-  
   final TextEditingController txtEmail = TextEditingController();
   final TextEditingController txtPassword = TextEditingController();
 
@@ -17,7 +16,7 @@ class _GSignInScreenState extends State<GSignInScreen> {
 
   final Color primaryColor = const Color(0xFF1E4D3C);
 
-  void _checkSignIn(){
+  void _checkSignIn() {
     String email = txtEmail.text.trim();
     String password = txtPassword.text.trim();
 
@@ -37,15 +36,15 @@ class _GSignInScreenState extends State<GSignInScreen> {
       return;
     }
 
-  if (password.length < 6) {
-    _errorMessage("Password must be at least 6 characters.");
-    return;
-  }
+    if (password.length < 6) {
+      _errorMessage("Password must be at least 6 characters.");
+      return;
+    }
 
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(
-      content: Text("Sign-in successful!"),
-      backgroundColor: Colors.green,
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Sign-in successful!"),
+        backgroundColor: Colors.green,
       ),
     );
   }
@@ -84,7 +83,7 @@ class _GSignInScreenState extends State<GSignInScreen> {
             child: Container(
               decoration: const BoxDecoration(
                 image: DecorationImage(
-                  image: AssetImage("assets/images/image17.png"), 
+                  image: AssetImage("assets/images/image17.png"),
                   fit: BoxFit.cover,
                   alignment: Alignment(0.0, -1.0),
                 ),
@@ -97,7 +96,10 @@ class _GSignInScreenState extends State<GSignInScreen> {
             child: Container(
               height: screen.height * 0.78,
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 30.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 30.0,
+                vertical: 30.0,
+              ),
               decoration: const BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.only(
@@ -122,13 +124,10 @@ class _GSignInScreenState extends State<GSignInScreen> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    
+
                     labelWidget("Email"),
                     const SizedBox(height: 18),
-                    inputField(
-                      ctrl: txtEmail,
-                      hint: "example@gmail.com",
-                    ),
+                    inputField(ctrl: txtEmail, hint: "example@gmail.com"),
 
                     const SizedBox(height: 35),
 
@@ -151,8 +150,7 @@ class _GSignInScreenState extends State<GSignInScreen> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                        onPressed: () {
-                        },
+                        onPressed: () {},
                         child: const Text(
                           "Forgot Password?",
                           style: TextStyle(
@@ -165,7 +163,7 @@ class _GSignInScreenState extends State<GSignInScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 30), 
+                    const SizedBox(height: 30),
 
                     SizedBox(
                       width: double.infinity,
@@ -191,7 +189,6 @@ class _GSignInScreenState extends State<GSignInScreen> {
                       ),
                     ),
 
-
                     const SizedBox(height: 30),
 
                     Center(
@@ -199,9 +196,9 @@ class _GSignInScreenState extends State<GSignInScreen> {
                         text: TextSpan(
                           text: "Don't have an account? ",
                           style: const TextStyle(
-                            color: Colors.black, 
-                            fontFamily: 'Roboto', 
-                            fontSize: 16
+                            color: Colors.black,
+                            fontFamily: 'Roboto',
+                            fontSize: 16,
                           ),
                           children: [
                             TextSpan(
@@ -212,9 +209,7 @@ class _GSignInScreenState extends State<GSignInScreen> {
                                 fontFamily: 'Roboto',
                                 fontSize: 16,
                               ),
-                              recognizer: TapGestureRecognizer()
-                                ..onTap = () {
-                                },
+                              recognizer: TapGestureRecognizer()..onTap = () {},
                             ),
                           ],
                         ),
@@ -243,7 +238,7 @@ class _GSignInScreenState extends State<GSignInScreen> {
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: const Color.fromRGBO(0, 0, 0, 0.3),
             blurRadius: 5,
             offset: const Offset(0, 4),
           ),
@@ -256,11 +251,16 @@ class _GSignInScreenState extends State<GSignInScreen> {
           hintText: hint,
           hintStyle: TextStyle(color: Colors.grey[500]),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 20,
+          ),
           suffixIcon: isSecure
               ? IconButton(
                   icon: Icon(
-                    showContent ? Icons.visibility : Icons.visibility_off_outlined,
+                    showContent
+                        ? Icons.visibility
+                        : Icons.visibility_off_outlined,
                     color: Colors.grey[600],
                   ),
                   onPressed: onEyeTap,
