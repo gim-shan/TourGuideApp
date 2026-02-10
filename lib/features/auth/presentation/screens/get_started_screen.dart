@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'tourist_signin_screen.dart';
+import 'choose_role_screen.dart';
 import 'get_started_vr_screen.dart';
 
 class GetStartedScreen extends StatelessWidget {
@@ -122,7 +122,7 @@ class GetStartedScreen extends StatelessWidget {
                             height: 56,
                             child: ElevatedButton(
                               onPressed: () {
-                                Navigator.of(context).pushReplacement(
+                                Navigator.of(context).push(
                                   PageRouteBuilder(
                                     pageBuilder:
                                         (context, animation, secondary) =>
@@ -175,7 +175,7 @@ class GetStartedScreen extends StatelessWidget {
             ),
           ),
 
-          // Positioned Skip button bottom-right
+          // Positioned Skip button bottom-right -> go directly to role selection
           Positioned(
             right: 16,
             bottom: MediaQuery.of(context).padding.bottom + 16,
@@ -184,7 +184,7 @@ class GetStartedScreen extends StatelessWidget {
                 Navigator.of(context).pushReplacement(
                   PageRouteBuilder(
                     pageBuilder: (context, animation, secondary) =>
-                        const TSignInScreen(),
+                        const ChooseRoleScreen(),
                     transitionsBuilder:
                         (context, animation, secondary, child) =>
                             FadeTransition(opacity: animation, child: child),

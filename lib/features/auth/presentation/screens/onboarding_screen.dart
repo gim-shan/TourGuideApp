@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'get_started_screen.dart';
 
 class OnboardingScreen extends StatelessWidget {
@@ -15,20 +16,28 @@ class OnboardingScreen extends StatelessWidget {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Modern black and green gradient background
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFF000000), // Pure black
-                  Color(0xFF0A2E1A), // Dark green
-                  Color(0xFF1B5E20), // Medium green
-                  Color(0xFF2E7D32), // Light green
-                ],
-                stops: [0.0, 0.4, 0.7, 1.0],
-              ),
+          // Full-screen background image (falls back to gradient if missing)
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/onboarding.jpg',
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Color(0xFF000000), // Pure black
+                        Color(0xFF0A2E1A), // Dark green
+                        Color(0xFF1B5E20), // Medium green
+                        Color(0xFF2E7D32), // Light green
+                      ],
+                      stops: [0.0, 0.4, 0.7, 1.0],
+                    ),
+                  ),
+                );
+              },
             ),
           ),
 
@@ -83,25 +92,25 @@ class OnboardingScreen extends StatelessWidget {
                         children: [
                           Image.asset(
                             'assets/images/RouteX.png',
-                            width: size.width * 0.45,
+                            width: size.width * 0.75,
                             fit: BoxFit.contain,
                             errorBuilder: (context, error, stackTrace) {
                               return const Icon(
                                 Icons.map,
-                                size: 120,
+                                size: 200,
                                 color: Colors.white,
                               );
                             },
                           ),
                           const SizedBox(height: 24),
-                          const Text(
+                          Text(
                             'RouteX',
-                            style: TextStyle(
+                            style: GoogleFonts.oxanium(
                               fontSize: 48,
                               fontWeight: FontWeight.w800,
                               color: Colors.white,
                               letterSpacing: 1.2,
-                              shadows: [
+                              shadows: const [
                                 Shadow(
                                   color: Colors.black45,
                                   offset: Offset(2, 2),
@@ -127,23 +136,10 @@ class OnboardingScreen extends StatelessWidget {
                           child: Ink(
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(32),
-                              gradient: const LinearGradient(
-                                begin: Alignment.centerLeft,
-                                end: Alignment.centerRight,
-                                colors: [
-                                  Color(0xFF00C853), // Vibrant green
-                                  Color(0xFF009624), // Darker green
-                                ],
-                              ),
-                              boxShadow: [
+                              color: Colors.white,
+                              boxShadow: const [
                                 BoxShadow(
-                                  color: Color.fromRGBO(0, 200, 83, 0.3),
-                                  blurRadius: 20,
-                                  offset: Offset(0, 10),
-                                  spreadRadius: 2,
-                                ),
-                                BoxShadow(
-                                  color: Colors.black26,
+                                  color: Colors.black12,
                                   blurRadius: 12,
                                   offset: Offset(0, 4),
                                 ),
@@ -152,7 +148,7 @@ class OnboardingScreen extends StatelessWidget {
                             child: InkWell(
                               borderRadius: BorderRadius.circular(32),
                               onTap: () {
-                                Navigator.of(context).pushReplacement(
+                                Navigator.of(context).push(
                                   PageRouteBuilder(
                                     pageBuilder:
                                         (context, animation, secondary) =>
@@ -190,14 +186,14 @@ class OnboardingScreen extends StatelessWidget {
                                   children: [
                                     Icon(
                                       Icons.arrow_forward,
-                                      color: Colors.white,
+                                      color: primaryColor,
                                       size: 22,
                                     ),
                                     SizedBox(width: 12),
                                     Text(
                                       'Get Started',
                                       style: TextStyle(
-                                        color: Colors.white,
+                                        color: primaryColor,
                                         fontSize: 19,
                                         fontWeight: FontWeight.w700,
                                         letterSpacing: 0.5,

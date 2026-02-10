@@ -1,6 +1,6 @@
 # Tour Guide App
 
-A Flutter mobile application for discovering and booking tour guides.
+A Flutter mobile application for travelling across Sri Lanka while focusing on local guides.
 
 ## Getting Started
 
@@ -32,7 +32,6 @@ What things you need to install the software and how to install them:
    ```
 
 3. Set up Firebase (if applicable):
-
    - Create a new project in the [Firebase Console](https://console.firebase.google.com/)
    - Add your Android and iOS apps to the project
    - Download `google-services.json` for Android and `GoogleService-Info.plist` for iOS

@@ -1,27 +1,35 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:image_picker/image_picker.dart';
 
-class TSignUpScreen extends StatefulWidget {
-  const TSignUpScreen({super.key});
+class GSignUpScreen extends StatefulWidget {
+  const GSignUpScreen({super.key});
 
   @override
-  State<TSignUpScreen> createState() => _TSignUpScreenState();
+  State<GSignUpScreen> createState() => _GSignUpScreenState();
 }
 
-class _TSignUpScreenState extends State<TSignUpScreen> {
+class _GSignUpScreenState extends State<GSignUpScreen> {
   final TextEditingController _emailCtrl = TextEditingController();
   final TextEditingController _passwordCtrl = TextEditingController();
-  final TextEditingController _nameCtrl = TextEditingController();
+  final TextEditingController _fullNameCtrl = TextEditingController();
+  final TextEditingController _licenseCtrl = TextEditingController();
 
   final _auth = FirebaseAuth.instance;
   final _firestore = FirebaseFirestore.instance;
+  final _storage = FirebaseStorage.instance;
+  final _picker = ImagePicker();
   final _formKey = GlobalKey<FormState>();
 
   bool _isLoading = false;
   bool _showPass = false;
+  XFile? _licenseFile;
 
   final Color primaryColor = const Color(0xFF1E4D3C);
 
@@ -29,8 +37,35 @@ class _TSignUpScreenState extends State<TSignUpScreen> {
   void dispose() {
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
-    _nameCtrl.dispose();
+    _fullNameCtrl.dispose();
+    _licenseCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickLicenseFile() async {
+    try {
+      final picked = await _picker.pickImage(source: ImageSource.gallery);
+      if (picked != null) {
+        setState(() => _licenseFile = picked);
+      }
+    } catch (_) {
+      _showError('Failed to pick image. Please try again.');
+    }
+  }
+
+  Future<String?> _uploadLicenseProof(String uid) async {
+    if (_licenseFile == null) return null;
+    try {
+      final file = File(_licenseFile!.path);
+      final ref =
+          _storage.ref().child('guide_licenses').child('$uid-${DateTime.now().millisecondsSinceEpoch}.jpg');
+      final uploadTask = await ref.putFile(file);
+      final url = await uploadTask.ref.getDownloadURL();
+      return url;
+    } catch (_) {
+      _showError('Failed to upload license proof. You can continue without it.');
+      return null;
+    }
   }
 
   Future<void> _signUpWithEmail() async {
@@ -52,25 +87,30 @@ class _TSignUpScreenState extends State<TSignUpScreen> {
         );
       }
 
+      String? licenseUrl = await _uploadLicenseProof(user.uid);
+
       await _firestore.collection('users').doc(user.uid).set({
         'email': user.email,
-        'role': 'tourist',
-        'name': _nameCtrl.text.trim().isEmpty ? null : _nameCtrl.text.trim(),
+        'role': 'guide',
+        'fullName': _fullNameCtrl.text.trim(),
+        'sltdaLicenseNumber': _licenseCtrl.text.trim(),
+        'licenseProofUrl': licenseUrl,
         'createdAt': FieldValue.serverTimestamp(),
         'provider': 'password',
+        'verified': false,
       }, SetOptions(merge: true));
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Tourist account created successfully!'),
+          content: Text('Guide account created. Awaiting verification.'),
           backgroundColor: Colors.green,
         ),
       );
-      Navigator.pop(context); // Go back to sign-in
+      Navigator.pop(context);
     } on FirebaseAuthException catch (e) {
       _showError(_mapAuthError(e));
-    } catch (e) {
+    } catch (_) {
       _showError('Something went wrong. Please try again.');
     } finally {
       if (mounted) {
@@ -84,7 +124,6 @@ class _TSignUpScreenState extends State<TSignUpScreen> {
     try {
       final googleUser = await GoogleSignIn().signIn();
       if (googleUser == null) {
-        // User cancelled the flow.
         return;
       }
 
@@ -105,23 +144,24 @@ class _TSignUpScreenState extends State<TSignUpScreen> {
 
       await _firestore.collection('users').doc(user.uid).set({
         'email': user.email,
-        'role': 'tourist',
-        'name': user.displayName,
+        'role': 'guide',
+        'fullName': user.displayName,
         'createdAt': FieldValue.serverTimestamp(),
         'provider': 'google',
+        'verified': false,
       }, SetOptions(merge: true));
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Signed in with Google as Tourist'),
+          content: Text('Signed in with Google as Guide'),
           backgroundColor: Colors.green,
         ),
       );
       Navigator.pop(context);
     } on FirebaseAuthException catch (e) {
       _showError(_mapAuthError(e));
-    } catch (e) {
+    } catch (_) {
       _showError('Google sign-in failed. Please try again.');
     } finally {
       if (mounted) {
@@ -147,7 +187,10 @@ class _TSignUpScreenState extends State<TSignUpScreen> {
 
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
     );
   }
 
@@ -175,7 +218,7 @@ class _TSignUpScreenState extends State<TSignUpScreen> {
             child: Container(
               decoration: const BoxDecoration(
                 image: DecorationImage(
-                  image: AssetImage('assets/images/image16.png'),
+                  image: AssetImage('assets/images/image17.png'),
                   fit: BoxFit.cover,
                   alignment: Alignment(0.0, -1.0),
                 ),
@@ -207,7 +250,7 @@ class _TSignUpScreenState extends State<TSignUpScreen> {
                       const SizedBox(height: 10),
                       const Center(
                         child: Text(
-                          'Create Tourist Account',
+                          'Create Guide Account',
                           style: TextStyle(
                             fontSize: 28,
                             fontFamily: 'Roboto',
@@ -228,9 +271,8 @@ class _TSignUpScreenState extends State<TSignUpScreen> {
                           if (email.isEmpty) {
                             return 'Please enter your email.';
                           }
-                          final regex = RegExp(
-                            r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                          );
+                          final regex =
+                              RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
                           if (!regex.hasMatch(email)) {
                             return 'Please enter a valid email address.';
                           }
@@ -260,9 +302,61 @@ class _TSignUpScreenState extends State<TSignUpScreen> {
                         },
                       ),
                       const SizedBox(height: 20),
-                      _label('Name (optional)'),
+                      _label('Full Name'),
                       const SizedBox(height: 12),
-                      _inputField(controller: _nameCtrl, hint: 'Your name'),
+                      _inputField(
+                        controller: _fullNameCtrl,
+                        hint: 'Your full name',
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter your full name.';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      _label('SLTDA License Number (e.g., N-0005)'),
+                      const SizedBox(height: 12),
+                      _inputField(
+                        controller: _licenseCtrl,
+                        hint: 'N-0005',
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter your SLTDA license number.';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      _label('License Proof (optional)'),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: _isLoading ? null : _pickLicenseFile,
+                            icon: const Icon(Icons.upload_file),
+                            label: const Text('Upload proof'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.grey[200],
+                              foregroundColor: Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              _licenseFile != null
+                                  ? _licenseFile!.name
+                                  : 'No file selected',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: 24),
                       SizedBox(
                         width: double.infinity,
@@ -430,3 +524,4 @@ class _TSignUpScreenState extends State<TSignUpScreen> {
     );
   }
 }
+

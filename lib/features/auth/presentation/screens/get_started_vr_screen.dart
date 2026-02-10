@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'get_started_second_screen.dart';
+import 'choose_role_screen.dart';
 
 class GetStartedVrScreen extends StatelessWidget {
   const GetStartedVrScreen({super.key});
@@ -174,7 +175,7 @@ class GetStartedVrScreen extends StatelessWidget {
                 Navigator.of(context).pushReplacement(
                   PageRouteBuilder(
                     pageBuilder: (context, animation, secondary) =>
-                        const GetStartedSecondScreen(),
+                        const ChooseRoleScreen(),
                     transitionsBuilder:
                         (context, animation, secondary, child) =>
                             FadeTransition(opacity: animation, child: child),
