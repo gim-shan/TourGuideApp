@@ -1,5 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+
+import 'guide_signup_screen.dart';
 
 class GSignInScreen extends StatefulWidget {
   const GSignInScreen({super.key});
@@ -9,15 +14,25 @@ class GSignInScreen extends StatefulWidget {
 }
 
 class _GSignInScreenState extends State<GSignInScreen> {
-  
   final TextEditingController txtEmail = TextEditingController();
   final TextEditingController txtPassword = TextEditingController();
 
+  final _auth = FirebaseAuth.instance;
+  final _firestore = FirebaseFirestore.instance;
+
   bool showPass = false;
+  bool _isLoading = false;
 
   final Color primaryColor = const Color(0xFF1E4D3C);
 
-  void _checkSignIn(){
+  @override
+  void dispose() {
+    txtEmail.dispose();
+    txtPassword.dispose();
+    super.dispose();
+  }
+
+  Future<void> _checkSignIn() async {
     String email = txtEmail.text.trim();
     String password = txtPassword.text.trim();
 
@@ -37,17 +52,101 @@ class _GSignInScreenState extends State<GSignInScreen> {
       return;
     }
 
-  if (password.length < 6) {
-    _errorMessage("Password must be at least 6 characters.");
-    return;
+    if (password.length < 6) {
+      _errorMessage("Password must be at least 6 characters.");
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Signed in successfully!"),
+          backgroundColor: Colors.green,
+        ),
+      );
+      // TODO: Navigate to guide home screen
+    } on FirebaseAuthException catch (e) {
+      _errorMessage(_mapAuthError(e));
+    } catch (_) {
+      _errorMessage("Something went wrong. Please try again.");
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(
-      content: Text("Sign-in successful!"),
-      backgroundColor: Colors.green,
-      ),
-    );
+  Future<void> _signInWithGoogle() async {
+    setState(() => _isLoading = true);
+    try {
+      final googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) {
+        return;
+      }
+
+      final googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final userCred = await _auth.signInWithCredential(credential);
+      final user = userCred.user;
+      if (user == null) {
+        throw FirebaseAuthException(
+          code: 'user-null',
+          message: 'Unable to sign in with Google. Please try again.',
+        );
+      }
+
+      await _firestore.collection('users').doc(user.uid).set({
+        'email': user.email,
+        'role': 'guide',
+        'fullName': user.displayName,
+        'provider': 'google',
+        'lastSignInAt': FieldValue.serverTimestamp(),
+        'verified': false,
+      }, SetOptions(merge: true));
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Signed in with Google as Guide"),
+          backgroundColor: Colors.green,
+        ),
+      );
+      // TODO: Navigate to guide home screen
+    } on FirebaseAuthException catch (e) {
+      _errorMessage(_mapAuthError(e));
+    } catch (_) {
+      _errorMessage("Google sign-in failed. Please try again.");
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  String _mapAuthError(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'user-not-found':
+        return 'No user found for that email.';
+      case 'wrong-password':
+        return 'Wrong password provided.';
+      case 'invalid-email':
+        return 'The email address is not valid.';
+      case 'user-disabled':
+        return 'This user account has been disabled.';
+      default:
+        return e.message ?? 'Authentication error. Please try again.';
+    }
   }
 
   void _errorMessage(String message) {
@@ -84,7 +183,7 @@ class _GSignInScreenState extends State<GSignInScreen> {
             child: Container(
               decoration: const BoxDecoration(
                 image: DecorationImage(
-                  image: AssetImage("assets/images/image17.png"), 
+                  image: AssetImage("assets/images/image17.png"),
                   fit: BoxFit.cover,
                   alignment: Alignment(0.0, -1.0),
                 ),
@@ -97,7 +196,10 @@ class _GSignInScreenState extends State<GSignInScreen> {
             child: Container(
               height: screen.height * 0.78,
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 30.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 30.0,
+                vertical: 30.0,
+              ),
               decoration: const BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.only(
@@ -122,13 +224,10 @@ class _GSignInScreenState extends State<GSignInScreen> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    
+
                     labelWidget("Email"),
                     const SizedBox(height: 18),
-                    inputField(
-                      ctrl: txtEmail,
-                      hint: "example@gmail.com",
-                    ),
+                    inputField(ctrl: txtEmail, hint: "example@gmail.com"),
 
                     const SizedBox(height: 35),
 
@@ -151,8 +250,7 @@ class _GSignInScreenState extends State<GSignInScreen> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                        onPressed: () {
-                        },
+                        onPressed: () {},
                         child: const Text(
                           "Forgot Password?",
                           style: TextStyle(
@@ -165,13 +263,13 @@ class _GSignInScreenState extends State<GSignInScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 30), 
+                    const SizedBox(height: 30),
 
                     SizedBox(
                       width: double.infinity,
                       height: 64,
                       child: ElevatedButton(
-                        onPressed: _checkSignIn,
+                        onPressed: _isLoading ? null : _checkSignIn,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: primaryColor,
                           shape: RoundedRectangleBorder(
@@ -179,29 +277,46 @@ class _GSignInScreenState extends State<GSignInScreen> {
                           ),
                           elevation: 5,
                         ),
-                        child: const Text(
-                          "SIGN IN",
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontFamily: 'Roboto',
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text(
+                                "SIGN IN",
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontFamily: 'Roboto',
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
                       ),
                     ),
 
-
                     const SizedBox(height: 30),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _googleBtn('assets/icons/Google1.png'),
+                      ],
+                    ),
+
+                    const SizedBox(height: 16),
 
                     Center(
                       child: RichText(
                         text: TextSpan(
                           text: "Don't have an account? ",
                           style: const TextStyle(
-                            color: Colors.black, 
-                            fontFamily: 'Roboto', 
-                            fontSize: 16
+                            color: Colors.black,
+                            fontFamily: 'Roboto',
+                            fontSize: 16,
                           ),
                           children: [
                             TextSpan(
@@ -214,6 +329,11 @@ class _GSignInScreenState extends State<GSignInScreen> {
                               ),
                               recognizer: TapGestureRecognizer()
                                 ..onTap = () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => const GSignUpScreen(),
+                                    ),
+                                  );
                                 },
                             ),
                           ],
@@ -243,7 +363,7 @@ class _GSignInScreenState extends State<GSignInScreen> {
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: const Color.fromRGBO(0, 0, 0, 0.3),
             blurRadius: 5,
             offset: const Offset(0, 4),
           ),
@@ -256,11 +376,16 @@ class _GSignInScreenState extends State<GSignInScreen> {
           hintText: hint,
           hintStyle: TextStyle(color: Colors.grey[500]),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 20,
+          ),
           suffixIcon: isSecure
               ? IconButton(
                   icon: Icon(
-                    showContent ? Icons.visibility : Icons.visibility_off_outlined,
+                    showContent
+                        ? Icons.visibility
+                        : Icons.visibility_off_outlined,
                     color: Colors.grey[600],
                   ),
                   onPressed: onEyeTap,
@@ -279,6 +404,24 @@ class _GSignInScreenState extends State<GSignInScreen> {
         fontFamily: 'Roboto',
         fontWeight: FontWeight.bold,
         color: Colors.black,
+      ),
+    );
+  }
+
+  Widget _googleBtn(String imgpath) {
+    return InkWell(
+      onTap: _isLoading ? null : _signInWithGoogle,
+      child: CircleAvatar(
+        radius: 35,
+        backgroundColor: Colors.transparent,
+        child: Image.asset(
+          imgpath,
+          height: 50,
+          width: 50,
+          errorBuilder: (ctx, err, stack) {
+            return const Icon(Icons.circle, color: Colors.grey, size: 40);
+          },
+        ),
       ),
     );
   }
