@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "907169982246",
+    "project_id": "tourist-guide-app-b2f8b",
+    "storage_bucket": "tourist-guide-app-b2f8b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:907169982246:android:7bf20dbf372b168cc903e7",
+        "android_client_info": {
+          "package_name": "com.example.hidmo_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCnTTNyKG-zjL41jL7z_IpHbxJQus8wV9Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
