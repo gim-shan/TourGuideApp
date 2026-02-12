@@ -26,3 +26,4 @@ class HiddenMonentsApp extends StatelessWidget {
     );
   }
 }
+// update pubspec.yaml to add firebase_core dependency
