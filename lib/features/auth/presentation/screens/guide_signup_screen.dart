@@ -57,13 +57,17 @@ class _GSignUpScreenState extends State<GSignUpScreen> {
     if (_licenseFile == null) return null;
     try {
       final file = File(_licenseFile!.path);
-      final ref =
-          _storage.ref().child('guide_licenses').child('$uid-${DateTime.now().millisecondsSinceEpoch}.jpg');
+      final ref = _storage
+          .ref()
+          .child('guide_licenses')
+          .child('$uid-${DateTime.now().millisecondsSinceEpoch}.jpg');
       final uploadTask = await ref.putFile(file);
       final url = await uploadTask.ref.getDownloadURL();
       return url;
     } catch (_) {
-      _showError('Failed to upload license proof. You can continue without it.');
+      _showError(
+        'Failed to upload license proof. You can continue without it.',
+      );
       return null;
     }
   }
@@ -141,7 +145,7 @@ class _GSignUpScreenState extends State<GSignUpScreen> {
           message: 'Unable to sign in with Google. Please try again.',
         );
       }
-
+      //created the collection in firestore database
       await _firestore.collection('users').doc(user.uid).set({
         'email': user.email,
         'role': 'guide',
@@ -187,10 +191,7 @@ class _GSignUpScreenState extends State<GSignUpScreen> {
 
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-      ),
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
     );
   }
 
@@ -271,8 +272,9 @@ class _GSignUpScreenState extends State<GSignUpScreen> {
                           if (email.isEmpty) {
                             return 'Please enter your email.';
                           }
-                          final regex =
-                              RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                          final regex = RegExp(
+                            r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                          );
                           if (!regex.hasMatch(email)) {
                             return 'Please enter a valid email address.';
                           }
@@ -524,4 +526,3 @@ class _GSignUpScreenState extends State<GSignUpScreen> {
     );
   }
 }
-
