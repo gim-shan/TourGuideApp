@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:hidmo_app/features/auth/presentation/screens/onboarding_screen.dart';
 
 //import 'features/auth/presentation/screens/tourist_signin_screen.dart';
-import 'features/auth/presentation/screens/onboarding_screen.dart';
+import 'features/auth/presentation/screens/dashboard_screens/dashboard.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Needed for async Firebase init
@@ -23,6 +24,7 @@ class HiddenMonentsApp extends StatelessWidget {
         useMaterial3: true,
       ),
       home: const OnboardingScreen(),
+     // home: const DashboardScreen(),
     );
   }
 }
