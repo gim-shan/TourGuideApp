@@ -1,44 +1,68 @@
-// This file defines the data structure for a single live event.
-// It acts as a blueprint to ensure all events have the required details.
 class EventModel {
   final String title;
   final String location;
   final String date;
   final String imageUrl;
   final String price;
+  final String description;
+  final String region; // Added field for grouping locations
 
-  // The constructor requires all fields to be provided when creating a new event.
   EventModel({
     required this.title,
     required this.location,
     required this.date,
     required this.imageUrl,
     required this.price,
+    required this.description,
+    required this.region, // Added required parameter
   });
 }
 
-// A dummy list of events used for testing and UI design purposes.
-// Once you connect to a database (like Firebase), you will replace this.
+// Dummy data matching the exact UI design provided
 List<EventModel> dummyEvents = [
   EventModel(
-    title: "Kandy Esala Perahera",
-    location: "Kandy, Sri Lanka",
-    date: "Aug 15, 7:00 PM",
-    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/e/e9/Kandy_Esala_Perahera.jpg",
-    price: "Free",
+    title: "Sky Lanterns",
+    location: "Hikkaduwa",
+    date: "2025-12-30\n6pm onwards",
+    imageUrl: "assets/images/lanterns.png", 
+    price: "",
+    description: "Lively music, vibrant atmosphere, dancing, delicious food and drinks.",
+    region: "Southern", // Grouping category
   ),
   EventModel(
-    title: "Galle Literary Festival",
-    location: "Galle Fort",
-    date: "Jan 25, 9:00 AM",
-    imageUrl: "https://example.com/galle.jpg",
-    price: "\$20",
+    title: "Bonfires and Barbeques",
+    location: "Yala",
+    date: "Every Friday\n6pm onwards",
+    imageUrl: "assets/images/bonfire.png",
+    price: "",
+    description: "Stargazing and nightwalking to stories around the fire and cooking.",
+    region: "Southern", // Grouping category
   ),
   EventModel(
-    title: "Ella Music Night",
-    location: "Ella Town",
-    date: "Dec 31, 8:00 PM",
-    imageUrl: "https://example.com/ella.jpg",
-    price: "\$10",
+    title: "Esala Perahera",
+    location: "Kandy",
+    date: "July/August",
+    imageUrl: "assets/images/perahera.png",
+    price: "",
+    description: "One of the grandest Buddhist festivals in the world...",
+    region: "Hill Country", // Grouping category
+  ),
+  EventModel(
+    title: "Vesak Poya",
+    location: "Colombo",
+    date: "May",
+    imageUrl: "assets/images/vesak.png",
+    price: "",
+    description: "The 'Festival of Lights.' Colombo transforms into a glowing wonderland...",
+    region: "Colombo", // Grouping category
+  ),
+  EventModel(
+    title: "Colombo Fashion Week",
+    location: "Colombo",
+    date: "February/March and November",
+    imageUrl: "assets/images/fashion.png",
+    price: "",
+    description: "Colombo Fashion Week, is a semiannual fashion show held in Colombo...",
+    region: "Colombo", // Grouping category
   ),
 ];
