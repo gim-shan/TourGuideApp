@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import 'dashboard_screens/dashboard.dart';
 import 'tourist_signup_screen.dart';
 
 class TSignInScreen extends StatefulWidget {
@@ -68,7 +69,10 @@ class _TSignInScreenState extends State<TSignInScreen> {
           backgroundColor: Colors.green,
         ),
       );
-      // TODO: Navigate to tourist home screen
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const DashboardScreen()),
+        (route) => false,
+      );
     } on FirebaseAuthException catch (e) {
       _errorMessage(_mapAuthError(e));
     } catch (_) {
@@ -120,7 +124,10 @@ class _TSignInScreenState extends State<TSignInScreen> {
           backgroundColor: Colors.green,
         ),
       );
-      // TODO: Navigate to tourist home screen
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const DashboardScreen()),
+        (route) => false,
+      );
     } on FirebaseAuthException catch (e) {
       _errorMessage(_mapAuthError(e));
     } catch (_) {
