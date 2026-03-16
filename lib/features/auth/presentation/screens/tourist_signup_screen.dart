@@ -4,6 +4,8 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import 'dashboard_screens/dashboard.dart';
+
 class TSignUpScreen extends StatefulWidget {
   const TSignUpScreen({super.key});
 
@@ -67,7 +69,10 @@ class _TSignUpScreenState extends State<TSignUpScreen> {
           backgroundColor: Colors.green,
         ),
       );
-      Navigator.pop(context); // Go back to sign-in
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const DashboardScreen()),
+        (route) => false,
+      );
     } on FirebaseAuthException catch (e) {
       _showError(_mapAuthError(e));
     } catch (e) {
@@ -118,7 +123,10 @@ class _TSignUpScreenState extends State<TSignUpScreen> {
           backgroundColor: Colors.green,
         ),
       );
-      Navigator.pop(context);
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const DashboardScreen()),
+        (route) => false,
+      );
     } on FirebaseAuthException catch (e) {
       _showError(_mapAuthError(e));
     } catch (e) {
