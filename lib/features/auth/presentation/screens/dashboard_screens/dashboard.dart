@@ -3,9 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:hidmo_app/features/tourist/tour_packages/tour_packages.dart';
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key});
+  final int initialIndex;
+
+  const DashboardScreen({super.key, this.initialIndex = 0});
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -13,11 +16,11 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   final PageController _pageController = PageController();
-  final PageController _tabPageController = PageController();
+  late final PageController _tabPageController;
   Timer? _topPicksAutoSlideTimer;
   bool _isTopPicksInteracting = false;
 
-  int selectedIndex = 0;
+  late int selectedIndex;
   String? _userName;
 
   static const Color _navGreen = Color(0xff1b9c4d);
@@ -69,6 +72,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
+    selectedIndex = widget.initialIndex.clamp(0, 3);
+    _tabPageController = PageController(initialPage: selectedIndex);
+
     _loadUserName();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -80,24 +86,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _topPicksAutoSlideTimer?.cancel();
     if (_cards.length < 2) return;
 
-    _topPicksAutoSlideTimer = Timer.periodic(
-      const Duration(seconds: 3),
-      (_) {
-        if (!mounted || _isTopPicksInteracting) return;
-        if (!_pageController.hasClients) return;
+    _topPicksAutoSlideTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      if (!mounted || _isTopPicksInteracting) return;
+      if (!_pageController.hasClients) return;
 
-        final current = (_pageController.page ?? _pageController.initialPage)
-            .round()
-            .clamp(0, _cards.length - 1);
-        final next = (current + 1) % _cards.length;
+      final current = (_pageController.page ?? _pageController.initialPage)
+          .round()
+          .clamp(0, _cards.length - 1);
+      final next = (current + 1) % _cards.length;
 
-        _pageController.animateToPage(
-          next,
-          duration: const Duration(milliseconds: 550),
-          curve: Curves.easeInOutCubic,
-        );
-      },
-    );
+      _pageController.animateToPage(
+        next,
+        duration: const Duration(milliseconds: 550),
+        curve: Curves.easeInOutCubic,
+      );
+    });
   }
 
   @override
@@ -232,7 +235,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         builder: (context, child) {
                           final page = _pageController.hasClients
                               ? (_pageController.page ??
-                                  _pageController.initialPage.toDouble())
+                                    _pageController.initialPage.toDouble())
                               : _pageController.initialPage.toDouble();
 
                           return GestureDetector(
@@ -243,32 +246,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               controller: _pageController,
                               physics: const BouncingScrollPhysics(),
                               itemCount: _cards.length,
-                            itemBuilder: (context, index) {
-                              final card = _cards[index];
-                              final diff = (page - index).abs();
-                              final scale =
-                                  (1 - (diff * 0.20)).clamp(0.9, 1.0);
+                              itemBuilder: (context, index) {
+                                final card = _cards[index];
+                                final diff = (page - index).abs();
+                                final scale = (1 - (diff * 0.20)).clamp(
+                                  0.9,
+                                  1.0,
+                                );
 
-                              return Transform.scale(
-                                scale: scale,
-                                child: _buildTopPickCard(
-                                  imagePath: card["image"] as String,
-                                  title: card["title"] as String,
-                                  price: card["price"] as String,
-                                  rating: card["rating"] as String,
-                                  showBadge: card["badge"] as bool,
-                                  route: card["route"] as String? ?? "",
-                                  duration: card["duration"] as String? ?? "",
-                                ),
-                              );
-                            },
+                                return Transform.scale(
+                                  scale: scale,
+                                  child: _buildTopPickCard(
+                                    imagePath: card["image"] as String,
+                                    title: card["title"] as String,
+                                    price: card["price"] as String,
+                                    rating: card["rating"] as String,
+                                    showBadge: card["badge"] as bool,
+                                    route: card["route"] as String? ?? "",
+                                    duration: card["duration"] as String? ?? "",
+                                  ),
+                                );
+                              },
                             ),
                           );
                         },
                       ),
                     ),
                     const SizedBox(height: 27),
-                    _buildFeatureGrid(),
+                    _buildFeatureGrid(context),
                   ],
                 ),
               ),
@@ -521,7 +526,7 @@ Widget _buildTopPickCard({
   );
 }
 
-Widget _buildFeatureGrid() {
+Widget _buildFeatureGrid(BuildContext context) {
   final features = [
     {
       "icon": Icons.chat_bubble_outline,
@@ -570,6 +575,14 @@ Widget _buildFeatureGrid() {
         icon: features[index]["icon"] as IconData,
         title: features[index]["title"] as String,
         color: features[index]["color"] as Color,
+        onTap: () {
+          final title = features[index]["title"] as String;
+          if (title == "Tour Packages") {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const TourPackagesScreen()),
+            );
+          }
+        },
       );
     },
   );
@@ -579,11 +592,13 @@ class _AnimatedFeatureCard extends StatefulWidget {
   final IconData icon;
   final String title;
   final Color color;
+  final VoidCallback? onTap;
 
   const _AnimatedFeatureCard({
     required this.icon,
     required this.title,
     required this.color,
+    this.onTap,
   });
 
   @override
@@ -599,8 +614,7 @@ class _AnimatedFeatureCardState extends State<_AnimatedFeatureCard> {
 
   void _onTapUp(TapUpDetails details) {
     setState(() => isPressed = false);
-
-    print("${widget.title} tapped");
+    widget.onTap?.call();
   }
 
   void _onTapCancel() {
