@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "gpt4all": "^4.0.0"
+  }
+}

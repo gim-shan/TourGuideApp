@@ -12,6 +12,10 @@
 .swiftpm/
 migrate_working_dir/
 
+# Node modules
+node_modules/
+**/node_modules/
+
 # IntelliJ related
 *.iml
 *.ipr
@@ -46,3 +50,10 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Firebase functions
+/functions/node_modules/
+/functions/.env
+ /functions/.env.example
+.env
+.env.*
