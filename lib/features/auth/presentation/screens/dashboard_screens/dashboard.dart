@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hidmo_app/features/tourist/tour_packages/tour_packages.dart';
+import 'package:hidmo_app/features/ar/ar_preview_screen.dart';
+import 'package:hidmo_app/features/chat/ai_assistant_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final int initialIndex;
@@ -577,9 +579,19 @@ Widget _buildFeatureGrid(BuildContext context) {
         color: features[index]["color"] as Color,
         onTap: () {
           final title = features[index]["title"] as String;
+          if (title == "Chat") {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const AiAssistantScreen()),
+            );
+            return;
+          }
           if (title == "Tour Packages") {
             Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const TourPackagesScreen()),
+            );
+          } else if (title == "AR/VR") {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const ArPreviewListScreen()),
             );
           }
         },
