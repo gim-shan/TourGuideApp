@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hidmo_app/features/tourist/tour_packages/tour_packages.dart';
+import 'package:hidmo_app/features/ar/ar_preview_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final int initialIndex;
@@ -580,6 +581,10 @@ Widget _buildFeatureGrid(BuildContext context) {
           if (title == "Tour Packages") {
             Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const TourPackagesScreen()),
+            );
+          } else if (title == "AR/VR") {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const ArPreviewListScreen()),
             );
           }
         },
