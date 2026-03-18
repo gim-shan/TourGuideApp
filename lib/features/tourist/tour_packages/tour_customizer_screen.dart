@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hidmo_app/features/auth/presentation/screens/dashboard_screens/dashboard.dart';
 import 'package:hidmo_app/features/guides/presentation/screens/guides_screen.dart';
 import 'package:hidmo_app/features/tourist/hotels/explore_hotels_screen.dart';
+import 'package:hidmo_app/features/tourist/payment/payment_screen.dart';
 
 class TourCustomizerScreen extends StatefulWidget {
   const TourCustomizerScreen({super.key});
@@ -1020,7 +1021,31 @@ class _TourCustomizerScreenState extends State<TourCustomizerScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  // Collect booking details
+                  final bookingDetails = {
+                    'accommodation': selectedAccommodations.isNotEmpty
+                        ? selectedAccommodations.first['name']
+                        : 'None',
+                    'guide': selectedGuides.isNotEmpty
+                        ? selectedGuides.first['name']
+                        : 'None',
+                    'attractions': selectedAttractions.length,
+                    'hiddenGems': selectedHidden.length,
+                    'transport': transportPriceSelected,
+                  };
+
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => PaymentScreen(
+                        packageName: 'Custom Tour Package',
+                        totalAmount: totalAll.toDouble(),
+                        numberOfPeople: people,
+                        packageDetails: bookingDetails,
+                      ),
+                    ),
+                  );
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
                   foregroundColor: const Color(0xFF1E4D3C),

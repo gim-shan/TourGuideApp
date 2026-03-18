@@ -2,6 +2,23 @@ require('dotenv').config(); // Load .env in local environment
 const express = require('express');
 const fetch = require('node-fetch');
 const cors = require('cors');
+const admin = require('firebase-admin');
+
+// Use Stripe secret key from environment variable (secure)
+// For Firebase: Set using firebase functions:secrets:set STRIPE_SECRET_KEY
+// Or use .env file locally
+const stripeSecret = process.env.STRIPE_SECRET_KEY;
+if (!stripeSecret) {
+  console.error('ERROR: STRIPE_SECRET_KEY not set!');
+}
+const stripe = require('stripe')(stripeSecret);
+
+// Initialize Firebase Admin
+try {
+  admin.initializeApp();
+} catch (e) {
+  // App already initialized
+}
 
 const app = express();
 app.use(cors({ origin: true }));
@@ -72,14 +89,133 @@ async function handleGroqGenerate(req, res) {
   }
 }
 
-// Backward compatible aliases
+// Create Payment Intent for Stripe
+async function handleCreatePaymentIntent(req, res) {
+  try {
+    const { amount, currency = 'usd', customerId } = req.body;
+
+    if (!amount) {
+      return res.status(400).json({ error: 'Missing amount' });
+    }
+
+    // Create payment intent with Stripe
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: amount,
+      currency: currency,
+      customer: customerId,
+      automatic_payment_methods: {
+        enabled: true,
+      },
+    });
+
+    res.json({
+      clientSecret: paymentIntent.client_secret,
+      paymentIntentId: paymentIntent.id,
+    });
+
+  } catch (err) {
+    console.error('Stripe payment intent error', err);
+    res.status(500).json({ 
+      error: 'Failed to create payment intent', 
+      details: String(err) 
+    });
+  }
+}
+
+// Save booking to Firestore (called after successful payment)
+async function handleSaveBooking(req, res) {
+  try {
+    const { 
+      userId, 
+      userEmail, 
+      packageName, 
+      packageDetails, 
+      totalAmount, 
+      numberOfPeople,
+      paymentIntentId 
+    } = req.body;
+
+    if (!userId || !packageName || !totalAmount) {
+      return res.status(400).json({ error: 'Missing required booking details' });
+    }
+
+    const bookingData = {
+      userId,
+      userEmail,
+      packageName,
+      packageDetails,
+      totalAmount,
+      numberOfPeople,
+      bookingDate: admin.firestore.FieldValue.serverTimestamp(),
+      paymentStatus: 'paid',
+      paymentId: paymentIntentId,
+      status: 'confirmed',
+    };
+
+    const bookingRef = await admin.firestore().collection('bookings').add(bookingData);
+
+    res.json({
+      success: true,
+      bookingId: bookingRef.id,
+    });
+
+  } catch (err) {
+    console.error('Save booking error', err);
+    res.status(500).json({ 
+      error: 'Failed to save booking', 
+      details: String(err) 
+    });
+  }
+}
+
+// Webhook handler for Stripe events
+async function handleStripeWebhook(req, res) {
+  const sig = req.headers['stripe-signature'];
+  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  let event;
+
+  try {
+    if (endpointSecret && sig) {
+      event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+    } else {
+      event = req.body;
+    }
+  } catch (err) {
+    console.error('Webhook signature verification failed:', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  // Handle the event
+  switch (event.type) {
+    case 'payment_intent.succeeded':
+      const paymentIntent = event.data.object;
+      console.log('Payment succeeded:', paymentIntent.id);
+      // Update booking status in Firestore
+      // You can implement this based on your needs
+      break;
+    case 'payment_intent.payment_failed':
+      const failedPayment = event.data.object;
+      console.log('Payment failed:', failedPayment.id);
+      break;
+    default:
+      console.log(`Unhandled event type ${event.type}`);
+  }
+
+  res.json({ received: true });
+}
+
+// Route definitions
 app.post('/groq-generate', handleGroqGenerate);
 app.post('/generate', handleGroqGenerate);
+app.post('/createPaymentIntent', handleCreatePaymentIntent);
+app.post('/saveBooking', handleSaveBooking);
+app.post('/stripe-webhook', handleStripeWebhook);
 
 // Only for local testing
 if (require.main === module) {
   const port = process.env.PORT || 3000;
-  app.listen(port, () => console.log(`Local Groq AI server running at http://localhost:${port}`));
+  app.listen(port, () => console.log(`Server running at http://localhost:${port}`));
 }
 
 module.exports = app; // For Firebase deploy later
