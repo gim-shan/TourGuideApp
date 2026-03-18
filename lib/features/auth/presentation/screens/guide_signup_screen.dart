@@ -8,6 +8,9 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'get_started_screen.dart';
+import 'auth_service.dart';
+
 class GSignUpScreen extends StatefulWidget {
   const GSignUpScreen({super.key});
 
@@ -57,13 +60,17 @@ class _GSignUpScreenState extends State<GSignUpScreen> {
     if (_licenseFile == null) return null;
     try {
       final file = File(_licenseFile!.path);
-      final ref =
-          _storage.ref().child('guide_licenses').child('$uid-${DateTime.now().millisecondsSinceEpoch}.jpg');
+      final ref = _storage
+          .ref()
+          .child('guide_licenses')
+          .child('$uid-${DateTime.now().millisecondsSinceEpoch}.jpg');
       final uploadTask = await ref.putFile(file);
       final url = await uploadTask.ref.getDownloadURL();
       return url;
     } catch (_) {
-      _showError('Failed to upload license proof. You can continue without it.');
+      _showError(
+        'Failed to upload license proof. You can continue without it.',
+      );
       return null;
     }
   }
@@ -101,6 +108,10 @@ class _GSignUpScreenState extends State<GSignUpScreen> {
       }, SetOptions(merge: true));
 
       if (!mounted) return;
+
+      // Mark onboarding as complete
+      await AuthService.markOnboardingComplete();
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Guide account created. Awaiting verification.'),
@@ -187,10 +198,7 @@ class _GSignUpScreenState extends State<GSignUpScreen> {
 
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-      ),
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
     );
   }
 
@@ -205,7 +213,11 @@ class _GSignUpScreenState extends State<GSignUpScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (_) => const GetStartedScreen()),
+            );
+          },
         ),
       ),
       body: Stack(
@@ -271,8 +283,9 @@ class _GSignUpScreenState extends State<GSignUpScreen> {
                           if (email.isEmpty) {
                             return 'Please enter your email.';
                           }
-                          final regex =
-                              RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                          final regex = RegExp(
+                            r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                          );
                           if (!regex.hasMatch(email)) {
                             return 'Please enter a valid email address.';
                           }
@@ -524,4 +537,3 @@ class _GSignUpScreenState extends State<GSignUpScreen> {
     );
   }
 }
-

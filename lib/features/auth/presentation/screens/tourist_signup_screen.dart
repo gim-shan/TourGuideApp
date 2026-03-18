@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import 'dashboard_screens/dashboard.dart';
+import 'get_started_screen.dart';
+import 'auth_service.dart';
 
 class TSignUpScreen extends StatefulWidget {
   const TSignUpScreen({super.key});
@@ -45,6 +47,9 @@ class _TSignUpScreenState extends State<TSignUpScreen> {
         email: _emailCtrl.text.trim(),
         password: _passwordCtrl.text.trim(),
       );
+
+      // Mark onboarding as complete
+      await AuthService.markOnboardingComplete();
 
       final user = cred.user;
       if (user == null) {
@@ -101,6 +106,9 @@ class _TSignUpScreenState extends State<TSignUpScreen> {
 
       final userCred = await _auth.signInWithCredential(credential);
       final user = userCred.user;
+
+      // Mark onboarding as complete
+      await AuthService.markOnboardingComplete();
       if (user == null) {
         throw FirebaseAuthException(
           code: 'user-null',
@@ -170,7 +178,11 @@ class _TSignUpScreenState extends State<TSignUpScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (_) => const GetStartedScreen()),
+            );
+          },
         ),
       ),
       body: Stack(

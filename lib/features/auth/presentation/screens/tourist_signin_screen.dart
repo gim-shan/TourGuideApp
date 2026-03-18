@@ -6,6 +6,8 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 import 'dashboard_screens/dashboard.dart';
 import 'tourist_signup_screen.dart';
+import 'get_started_screen.dart';
+import 'auth_service.dart';
 
 class TSignInScreen extends StatefulWidget {
   const TSignInScreen({super.key});
@@ -62,6 +64,9 @@ class _TSignInScreenState extends State<TSignInScreen> {
     try {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
 
+      // Mark onboarding as complete
+      await AuthService.markOnboardingComplete();
+
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -108,6 +113,9 @@ class _TSignInScreenState extends State<TSignInScreen> {
           message: 'Unable to sign in with Google. Please try again.',
         );
       }
+
+      // Mark onboarding as complete
+      await AuthService.markOnboardingComplete();
 
       await _firestore.collection('users').doc(user.uid).set({
         'email': user.email,
@@ -175,7 +183,11 @@ class _TSignInScreenState extends State<TSignInScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (_) => const GetStartedScreen()),
+            );
+          },
         ),
       ),
       body: Stack(

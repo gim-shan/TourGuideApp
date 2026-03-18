@@ -5,6 +5,8 @@ import 'package:flutter/gestures.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import 'guide_signup_screen.dart';
+import 'get_started_screen.dart';
+import 'auth_service.dart';
 
 class GSignInScreen extends StatefulWidget {
   const GSignInScreen({super.key});
@@ -59,10 +61,10 @@ class _GSignInScreenState extends State<GSignInScreen> {
 
     setState(() => _isLoading = true);
     try {
-      await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      await _auth.signInWithEmailAndPassword(email: email, password: password);
+
+      // Mark onboarding as complete
+      await AuthService.markOnboardingComplete();
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -105,6 +107,9 @@ class _GSignInScreenState extends State<GSignInScreen> {
           message: 'Unable to sign in with Google. Please try again.',
         );
       }
+
+      // Mark onboarding as complete
+      await AuthService.markOnboardingComplete();
 
       await _firestore.collection('users').doc(user.uid).set({
         'email': user.email,
@@ -170,7 +175,11 @@ class _GSignInScreenState extends State<GSignInScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (_) => const GetStartedScreen()),
+            );
+          },
         ),
       ),
       body: Stack(
@@ -302,9 +311,7 @@ class _GSignInScreenState extends State<GSignInScreen> {
 
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _googleBtn('assets/icons/Google1.png'),
-                      ],
+                      children: [_googleBtn('assets/icons/Google1.png')],
                     ),
 
                     const SizedBox(height: 16),
@@ -426,4 +433,5 @@ class _GSignInScreenState extends State<GSignInScreen> {
     );
   }
 }
+
 // Hasini-test comment for contributor access

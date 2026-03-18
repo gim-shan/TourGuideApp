@@ -230,10 +230,10 @@ class _TourCustomizerScreenState extends State<TourCustomizerScreen> {
           height: 64,
           backgroundColor: Colors.white,
           indicatorColor: _navGreen,
-          labelTextStyle: WidgetStateProperty.all(
+          labelTextStyle: MaterialStateProperty.all(
             const TextStyle(fontSize: 0, height: 0),
           ),
-          iconTheme: WidgetStateProperty.resolveWith((states) {
+          iconTheme: MaterialStateProperty.resolveWith((states) {
             final isSelected = states.contains(WidgetState.selected);
             return IconThemeData(
               size: 26,
@@ -268,8 +268,8 @@ class _TourCustomizerScreenState extends State<TourCustomizerScreen> {
               label: 'Tour Packages',
             ),
             NavigationDestination(
-              icon: Icon(Icons.settings_rounded),
-              label: 'Settings',
+              icon: Icon(Icons.calendar_month_rounded),
+              label: 'Bookings',
             ),
           ],
         ),

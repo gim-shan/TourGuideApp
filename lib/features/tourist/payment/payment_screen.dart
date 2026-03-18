@@ -46,7 +46,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
         'usd',
       );
 
-      if (_paymentIntentData != null) {
+      if (_paymentIntentData != null &&
+          _paymentIntentData!['client_secret'] != null) {
         await Stripe.instance.initPaymentSheet(
           paymentSheetParameters: SetupPaymentSheetParameters(
             paymentIntentClientSecret: _paymentIntentData!['client_secret'],
@@ -60,6 +61,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 ),
           ),
         );
+      } else {
+        _showError('Payment initialization failed. Please try again.');
       }
 
       setState(() {
@@ -73,10 +76,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
     }
   }
 
-  // Deploy server.js to Railway/Render/Heroku and enter your URL here
-  // Example Railway URL format: https://your-app-name.up.railway.app
-  static const String _paymentServerUrl =
-      'https://tourguide-payment-server.up.railway.app';
+  // For local testing, use 'http://localhost:3000'
+  // For emulator testing, use 'http://10.0.2.2:3000' (Android emulator)
+  // For production, use Firebase Cloud Functions URL
+  static const String _paymentServerUrl = 'http://192.168.1.26:3000';
 
   Future<Map<String, dynamic>?> _createPaymentIntent(
     int amount,
@@ -96,15 +99,21 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        // Server returns clientSecret (camelCase), convert to snake_case for consistency
+        if (data['clientSecret'] != null) {
+          data['client_secret'] = data['clientSecret'];
+        }
         return data;
       } else {
         _showError('Failed to create payment intent');
         return null;
       }
     } catch (e) {
-      // For demo purposes, return mock data if the backend is not configured yet
-      // In production, this should always call your backend
-      return {'client_secret': 'pi_demo_secret'};
+      // Return null if backend is not available - will show error to user
+      _showError(
+        'Cannot connect to payment server. Please ensure the server is running.',
+      );
+      return null;
     }
   }
 
