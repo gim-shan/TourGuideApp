@@ -3,10 +3,11 @@
 // npm install express stripe cors dotenv
 
 require('dotenv').config();
+require('dotenv').config({ path: './functions/.env' });
 const express = require('express');
 const cors = require('cors');
 
-//removed secret key
+//removed secret
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 if (!stripeSecretKey) {
   console.error('ERROR: STRIPE_SECRET_KEY environment variable is not set!');
