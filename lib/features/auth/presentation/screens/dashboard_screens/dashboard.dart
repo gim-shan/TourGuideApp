@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hidmo_app/features/tourist/tour_packages/tour_packages.dart';
 import 'package:hidmo_app/features/ar/ar_preview_screen.dart';
 import 'package:hidmo_app/features/chat/ai_assistant_screen.dart';
+import 'package:hidmo_app/features/guides/presentation/screens/guides_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final int initialIndex;
@@ -584,15 +585,21 @@ Widget _buildFeatureGrid(BuildContext context) {
               MaterialPageRoute(builder: (_) => const AiAssistantScreen()),
             );
             return;
-          }
-          if (title == "Tour Packages") {
+          } else if (title == "Tour Packages") {
             Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const TourPackagesScreen()),
             );
+            return;
+          } else if (title == "Tour Guide") {
+            Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const GuidesScreen()));
+            return;
           } else if (title == "AR/VR") {
             Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const ArPreviewListScreen()),
             );
+            return;
           }
         },
       );

@@ -8,30 +8,34 @@ class ExploreHotelsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hotels = const [
+    final hotels = <Map<String, dynamic>>[
       {
         'name': 'Little England Cottages',
         'location': 'Nuwara Eliya, Sri Lanka',
         'rating': '4.5',
-        'price': 'From \$120/night',
+        'price': 120,
+        'desc': 'Cozy cottage with mountain views',
       },
       {
         'name': '98 Acres Resort and Spa',
         'location': 'Ella, Sri Lanka',
         'rating': '4.7',
-        'price': 'From \$180/night',
+        'price': 180,
+        'desc': 'Luxury eco-resort with scenic views',
       },
       {
         'name': 'Heritance Kandalama',
         'location': 'Dambulla, Sri Lanka',
         'rating': '4.6',
-        'price': 'From \$160/night',
+        'price': 160,
+        'desc': 'Award-winning architectural wonder',
       },
       {
         'name': 'Jetwing Vil Uyana',
         'location': 'Sigiriya, Sri Lanka',
         'rating': '4.8',
-        'price': 'From \$220/night',
+        'price': 220,
+        'desc': 'Serene luxury with nature pond',
       },
     ];
 
@@ -123,7 +127,7 @@ class ExploreHotelsScreen extends StatelessWidget {
                             ),
                             const Spacer(),
                             Text(
-                              (h['price'] ?? '').toString(),
+                              'From \$${h['price']}/night',
                               style: const TextStyle(
                                 fontWeight: FontWeight.w700,
                                 color: _primaryGreen,
@@ -143,4 +147,3 @@ class ExploreHotelsScreen extends StatelessWidget {
     );
   }
 }
-

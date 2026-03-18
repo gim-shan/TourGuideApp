@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:hidmo_app/features/auth/presentation/screens/dashboard_screens/dashboard.dart';
 import 'package:hidmo_app/features/tourist/tour_packages/tour_package_detail_screen.dart';
 
+import 'package:hidmo_app/features/tourist/tour_packages/tour_customizer_screen.dart';
+
 class TourPackagesScreen extends StatefulWidget {
   const TourPackagesScreen({super.key});
 
@@ -265,7 +267,7 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
             ),
             NavigationDestination(
               icon: Icon(Icons.explore_rounded),
-              label: 'Explore',
+              label: 'Tour Packages',
             ),
             NavigationDestination(
               icon: Icon(Icons.settings_rounded),
@@ -321,14 +323,6 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(30),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.4),
-                    blurRadius: 8,
-                    spreadRadius: -1,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
               ),
               child: TextField(
                 controller: _searchController,
@@ -460,7 +454,13 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
                   ],
                 ),
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const TourCustomizerScreen(),
+                      ),
+                    );
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF00A008),
                     foregroundColor: Colors.white,
@@ -762,7 +762,7 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
                 ),
                 child: Image.asset(
                   imagePath,
-                  height: 200,
+                  height: 160,
                   width: double.infinity,
                   fit: BoxFit.cover,
                   errorBuilder: (c, o, s) => Container(
