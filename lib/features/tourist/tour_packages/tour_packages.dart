@@ -1,9 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:hidmo_app/features/auth/presentation/screens/get_started_screen.dart';
 import 'package:hidmo_app/features/auth/presentation/screens/dashboard_screens/dashboard.dart';
 import 'package:hidmo_app/features/tourist/tour_packages/tour_package_detail_screen.dart';
 
+import 'package:hidmo_app/features/tourist/tour_packages/tour_customizer_screen.dart';
+
 class TourPackagesScreen extends StatefulWidget {
-  const TourPackagesScreen({super.key});
+  final int initialIndex;
+  final bool showBottomNav;
+  const TourPackagesScreen({
+    super.key,
+    this.initialIndex = 2,
+    this.showBottomNav = true,
+  });
 
   @override
   State<TourPackagesScreen> createState() => _TourPackagesScreenState();
@@ -14,7 +25,18 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
   static const Color _navGreen = Color(0xff1b9c4d);
   static const Color _navIdle = Color(0xff0e5a3c);
 
-  int _selectedNavIndex = 2;
+  late int _selectedNavIndex;
+
+  // Bookings for current user (raw documents from Firestore)
+  final List<Map<String, dynamic>> _userBookings = [];
+
+  bool _isPackageBooked(String? title) {
+    if (title == null || title.isEmpty) return false;
+    return _userBookings.any((b) {
+      final name = (b['packageName'] as String?)?.toLowerCase();
+      return name != null && name == title.toLowerCase();
+    });
+  }
 
   // Controllers
   final PageController _countrysideController = PageController(
@@ -30,6 +52,36 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
 
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = "";
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedNavIndex = widget.initialIndex.clamp(0, 3);
+    _loadUserBookings();
+  }
+
+  Future<void> _loadUserBookings() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+      final snap = await FirebaseFirestore.instance
+          .collection('bookings')
+          .where('userId', isEqualTo: user.uid)
+          .get();
+      final bookings = <Map<String, dynamic>>[];
+      for (final doc in snap.docs) {
+        final data = Map<String, dynamic>.from(doc.data());
+        data['id'] = doc.id;
+        bookings.add(data);
+      }
+      setState(() {
+        _userBookings.clear();
+        _userBookings.addAll(bookings);
+      });
+    } catch (e) {
+      // ignore errors silently for now
+    }
+  }
 
   // DAta List
   final List<Map<String, dynamic>> countrysidePackages = [
@@ -216,6 +268,17 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
     super.dispose();
   }
 
+  Future<void> _logout() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      if (!mounted) return;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const GetStartedScreen()),
+        (route) => false,
+      );
+    } catch (_) {}
+  }
+
   @override
   Widget build(BuildContext context) {
     bool isSearching = _searchQuery.isNotEmpty;
@@ -224,56 +287,76 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
 
-      // Navigation Bar
-      bottomNavigationBar: NavigationBarTheme(
-        data: NavigationBarThemeData(
-          height: 64,
-          backgroundColor: Colors.white,
-          indicatorColor: _navGreen,
-          labelTextStyle: WidgetStateProperty.all(
-            const TextStyle(fontSize: 0, height: 0),
-          ),
-          iconTheme: WidgetStateProperty.resolveWith((states) {
-            final isSelected = states.contains(WidgetState.selected);
-            return IconThemeData(
-              size: 26,
-              color: isSelected ? Colors.white : _navIdle,
-            );
-          }),
-        ),
-        child: NavigationBar(
-          selectedIndex: _selectedNavIndex,
-          onDestinationSelected: (index) {
-            setState(() {
-              _selectedNavIndex = index;
-            });
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (_) => DashboardScreen(initialIndex: index),
+      // Navigation Bar (optional when embedded)
+      bottomNavigationBar: widget.showBottomNav
+          ? NavigationBarTheme(
+              data: NavigationBarThemeData(
+                height: 64,
+                backgroundColor: Colors.white,
+                indicatorColor: _navGreen,
+                labelTextStyle: MaterialStateProperty.all(
+                  const TextStyle(fontSize: 0, height: 0),
+                ),
+                iconTheme: MaterialStateProperty.resolveWith((states) {
+                  final isSelected = states.contains(WidgetState.selected);
+                  return IconThemeData(
+                    size: 26,
+                    color: isSelected ? Colors.white : _navIdle,
+                  );
+                }),
               ),
-            );
-          },
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.home_rounded),
-              label: 'Home',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.place_rounded),
-              label: 'Map',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.explore_rounded),
-              label: 'Explore',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.settings_rounded),
-              label: 'Settings',
-            ),
-          ],
-        ),
-      ),
+              child: NavigationBar(
+                selectedIndex: _selectedNavIndex,
+                onDestinationSelected: (index) {
+                  if (index == 3) {
+                    setState(() {
+                      _selectedNavIndex = index;
+                    });
+                    _loadUserBookings();
+                    return;
+                  }
+
+                  // If user taps the Explore (Tour Packages) icon (index 2),
+                  // stay on this screen and update selected index.
+                  if (index == 2) {
+                    setState(() {
+                      _selectedNavIndex = index;
+                    });
+                    return;
+                  }
+
+                  // For other indices (Home, Map), navigate back to Dashboard.
+                  setState(() {
+                    _selectedNavIndex = index;
+                  });
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (_) => DashboardScreen(initialIndex: index),
+                    ),
+                  );
+                },
+                labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
+                destinations: const [
+                  NavigationDestination(
+                    icon: Icon(Icons.home_rounded),
+                    label: 'Home',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(Icons.place_rounded),
+                    label: 'Map',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(Icons.explore_rounded),
+                    label: 'Tour Packages',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(Icons.calendar_month_rounded),
+                    label: 'Bookings',
+                  ),
+                ],
+              ),
+            )
+          : null,
 
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -292,9 +375,8 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
           },
         ),
         actions: [
-          GestureDetector(
-            onTap: () {},
-            child: Container(
+          PopupMenuButton<String>(
+            icon: Container(
               margin: const EdgeInsets.only(right: 20),
               width: 50,
               height: 50,
@@ -307,6 +389,14 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
                 ),
               ),
             ),
+            onSelected: (value) {
+              if (value == 'logout') {
+                _logout();
+              }
+            },
+            itemBuilder: (context) => const [
+              PopupMenuItem(value: 'logout', child: Text('Logout')),
+            ],
           ),
         ],
       ),
@@ -321,14 +411,6 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(30),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.4),
-                    blurRadius: 8,
-                    spreadRadius: -1,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
               ),
               child: TextField(
                 controller: _searchController,
@@ -352,7 +434,9 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
             ),
           ),
 
-          if (isSearching)
+          if (_selectedNavIndex == 3)
+            ..._buildBookingsList()
+          else if (isSearching)
             ..._buildSearchResultsList(searchResults)
           else
             ..._buildHomeContent(),
@@ -386,6 +470,7 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
             price: item["price"],
             rating: item["rating"],
             isFavorite: item["isFavorite"],
+            isBooked: _isPackageBooked(item["title"] as String?),
             onFavoriteTap: () {
               setState(() {
                 item["isFavorite"] = !item["isFavorite"];
@@ -396,6 +481,106 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
         ),
       );
     }).toList();
+  }
+
+  List<Widget> _buildBookingsList() {
+    if (_userBookings.isEmpty) {
+      return [
+        const SizedBox(height: 50),
+        const Center(
+          child: Text(
+            "No bookings yet",
+            style: TextStyle(fontSize: 16, color: Colors.grey),
+          ),
+        ),
+      ];
+    }
+
+    final List<Widget> list = [];
+    for (final booking in _userBookings) {
+      final packageDetails =
+          (booking['packageDetails'] as Map<String, dynamic>?) ?? {};
+      final title =
+          (booking['packageName'] as String?) ??
+          (packageDetails['title'] as String?) ??
+          'Custom Booking';
+      final imagePath =
+          (packageDetails['image'] as String?) ??
+          'assets/images/Rectangle127.png';
+      final price = booking['totalAmount'] != null
+          ? '\$${booking['totalAmount']}'
+          : (packageDetails['price'] as String?) ?? 'N/A';
+      final rating = (packageDetails['rating'] as String?) ?? '4.8';
+
+      list.add(
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: _buildPackageCard(
+            imagePath: imagePath,
+            title: title,
+            price: price,
+            rating: rating,
+            isFavorite: false,
+            isBooked: true,
+            onFavoriteTap: () {},
+            onSeeMore: () {
+              showDialog(
+                context: context,
+                builder: (_) => AlertDialog(
+                  title: Text(title),
+                  content: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Number of People: ${booking['numberOfPeople'] ?? 'N/A'}',
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Total Amount: ${booking['totalAmount'] ?? 'N/A'}',
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Status: ${booking['status'] ?? booking['paymentStatus'] ?? 'N/A'}',
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Package Details:',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          packageDetails.entries
+                              .map((e) => '${e.key}: ${e.value}')
+                              .join('\n'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('Close'),
+                    ),
+                  ],
+                ),
+              );
+            },
+            onCardTap: null,
+          ),
+        ),
+      );
+    }
+    return list;
+  }
+
+  Map<String, dynamic>? _findPackageByTitle(String title) {
+    for (final pkg in _allPackages) {
+      final pkgTitle = (pkg['title'] as String?)?.toLowerCase();
+      if (pkgTitle == null) continue;
+      if (pkgTitle == title.toLowerCase()) return pkg;
+    }
+    return null;
   }
 
   List<Widget> _buildHomeContent() {
@@ -460,7 +645,13 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
                   ],
                 ),
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const TourCustomizerScreen(),
+                      ),
+                    );
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF00A008),
                     foregroundColor: Colors.white,
@@ -484,7 +675,6 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
           ),
         ),
       ),
-
       const SizedBox(height: 24),
 
       // Country Side
@@ -529,6 +719,7 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
                     : (isHeritage ? "Rs. 233,000 – Rs. 295,000" : null),
                 rating: item["rating"],
                 isFavorite: item["isFavorite"],
+                isBooked: _isPackageBooked(item["title"] as String?),
                 onFavoriteTap: () {
                   setState(() {
                     item["isFavorite"] = !item["isFavorite"];
@@ -583,6 +774,7 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
                 price: item["price"],
                 rating: item["rating"],
                 isFavorite: item["isFavorite"],
+                isBooked: _isPackageBooked(item["title"] as String?),
                 onFavoriteTap: () {
                   setState(() {
                     item["isFavorite"] = !item["isFavorite"];
@@ -630,6 +822,7 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
                 price: item["price"],
                 rating: item["rating"],
                 isFavorite: item["isFavorite"],
+                isBooked: _isPackageBooked(item["title"] as String?),
                 onFavoriteTap: () {
                   setState(() {
                     item["isFavorite"] = !item["isFavorite"];
@@ -677,6 +870,7 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
                 price: item["price"],
                 rating: item["rating"],
                 isFavorite: item["isFavorite"],
+                isBooked: _isPackageBooked(item["title"] as String?),
                 onFavoriteTap: () {
                   setState(() {
                     item["isFavorite"] = !item["isFavorite"];
@@ -734,6 +928,7 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
     String? priceLkr,
     required String rating,
     required bool isFavorite,
+    bool isBooked = false,
     required VoidCallback onFavoriteTap,
     required VoidCallback onSeeMore,
     VoidCallback? onCardTap,
@@ -762,7 +957,7 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
                 ),
                 child: Image.asset(
                   imagePath,
-                  height: 200,
+                  height: 160,
                   width: double.infinity,
                   fit: BoxFit.cover,
                   errorBuilder: (c, o, s) => Container(
@@ -866,25 +1061,45 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
                   child: SizedBox(
                     width: 140,
                     height: 30,
-                    child: ElevatedButton(
-                      onPressed: onSeeMore,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey[300],
-                        foregroundColor: const Color(0xFF1E4D3C),
-                        elevation: 0,
-                        padding: EdgeInsets.zero,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                      child: const Text(
-                        "See more",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
+                    child: isBooked
+                        ? ElevatedButton(
+                            onPressed: null,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF00A008),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              padding: EdgeInsets.zero,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ),
+                            child: const Text(
+                              "Booked",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          )
+                        : ElevatedButton(
+                            onPressed: onSeeMore,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.grey[300],
+                              foregroundColor: const Color(0xFF1E4D3C),
+                              elevation: 0,
+                              padding: EdgeInsets.zero,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ),
+                            child: const Text(
+                              "See more",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
                   ),
                 ),
               ],

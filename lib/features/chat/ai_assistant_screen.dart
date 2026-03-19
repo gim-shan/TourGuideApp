@@ -34,7 +34,7 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
     if (Platform.isAndroid) {
       // Defaulting to a common LAN IP used previously in this project.
       // Change via --dart-define when your IP changes.
-      return 'http://192.168.1.26:3000/groq-generate';
+      return 'http://10.121.182.41:3000/groq-generate';
     }
     return 'http://localhost:3000/groq-generate';
   }
@@ -63,6 +63,9 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
 
   void _send(String text) async {
     if (text.trim().isEmpty) return;
+
+    // Show debug info on first message
+    final isFirstMessage = _messages.isEmpty;
     setState(() {
       _messages.add({'sender': 'user', 'text': text.trim()});
       _messages.add({'sender': 'assistant', 'text': '...'}); // placeholder
@@ -83,14 +86,24 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
         }
       });
     } catch (e) {
+      String errorMsg = 'Failed to get reply:\n$e';
+      // Add helpful debug info on error
+      if (isFirstMessage) {
+        errorMsg =
+            'Backend error (404): Could not connect to server.\n\n'
+            'To fix this:\n'
+            '1. Make sure your PC and phone are on the same WiFi\n'
+            '2. Run the backend: "cd functions && npm start"\n'
+            '3. Find your PC IP (run "ipconfig" on Windows)\n'
+            '4. Run Flutter with: flutter run --dart-define=AI_BACKEND_URL=http://YOUR_PC_IP:3000/groq-generate\n\n'
+            'Current backend: $_backendUrl\n\n'
+            'Error: $e';
+      }
       setState(() {
         for (var i = _messages.length - 1; i >= 0; i--) {
           if (_messages[i]['sender'] == 'assistant' &&
               _messages[i]['text'] == '...') {
-            _messages[i] = {
-              'sender': 'assistant',
-              'text': 'Failed to get reply:\n$e',
-            };
+            _messages[i] = {'sender': 'assistant', 'text': errorMsg};
             break;
           }
         }

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:hidmo_app/features/tourist/hotels/explore_hotels_screen.dart';
+import 'package:hidmo_app/features/tourist/payment/payment_screen.dart';
 
 class TourPackageHighlight {
   const TourPackageHighlight({
@@ -242,7 +243,7 @@ class _TourPackageDetailScreenState extends State<TourPackageDetailScreen> {
     setState(() {
       _accommodationImageIndex =
           (_accommodationImageIndex - 1 + _activeAccommodationImages.length) %
-              _activeAccommodationImages.length;
+          _activeAccommodationImages.length;
     });
   }
 
@@ -299,11 +300,7 @@ class _TourPackageDetailScreenState extends State<TourPackageDetailScreen> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      _buildInfoRow(
-                        Icons.route,
-                        "Route",
-                        widget.route,
-                      ),
+                      _buildInfoRow(Icons.route, "Route", widget.route),
                       const SizedBox(height: 12),
                       _buildInfoRow(
                         Icons.schedule,
@@ -344,7 +341,10 @@ class _TourPackageDetailScreenState extends State<TourPackageDetailScreen> {
                                 }
                               }
                             },
-                            icon: const Icon(Icons.swap_horiz_rounded, size: 18),
+                            icon: const Icon(
+                              Icons.swap_horiz_rounded,
+                              size: 18,
+                            ),
                             label: const Text("Change"),
                             style: TextButton.styleFrom(
                               foregroundColor: _primaryGreen,
@@ -378,8 +378,7 @@ class _TourPackageDetailScreenState extends State<TourPackageDetailScreen> {
                                     aspectRatio: 16 / 9,
                                     child: Image.asset(
                                       _activeAccommodationImages.isNotEmpty
-                                          ? _activeAccommodationImages[
-                                              _accommodationImageIndex]
+                                          ? _activeAccommodationImages[_accommodationImageIndex]
                                           : "assets/images/98acres1.jpg",
                                       fit: BoxFit.cover,
                                       errorBuilder: (_, __, ___) => Container(
@@ -435,8 +434,9 @@ class _TourPackageDetailScreenState extends State<TourPackageDetailScreen> {
                                             color: _accommodationImageIndex == i
                                                 ? Colors.white
                                                 : Colors.white.withOpacity(0.6),
-                                            borderRadius:
-                                                BorderRadius.circular(3),
+                                            borderRadius: BorderRadius.circular(
+                                              3,
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -490,13 +490,14 @@ class _TourPackageDetailScreenState extends State<TourPackageDetailScreen> {
                                         child: OutlinedButton.icon(
                                           onPressed: () async {
                                             final selected =
-                                                await Navigator.of(context)
-                                                    .push(
-                                              MaterialPageRoute(
-                                                builder: (_) =>
-                                                    const ExploreHotelsScreen(),
-                                              ),
-                                            );
+                                                await Navigator.of(
+                                                  context,
+                                                ).push(
+                                                  MaterialPageRoute(
+                                                    builder: (_) =>
+                                                        const ExploreHotelsScreen(),
+                                                  ),
+                                                );
                                             if (!mounted) return;
                                             if (selected is Map) {
                                               final name = selected['name']
@@ -556,11 +557,8 @@ class _TourPackageDetailScreenState extends State<TourPackageDetailScreen> {
                       ),
                       const SizedBox(height: 12),
                       ...widget.highlights.map(
-                        (h) => _buildHighlightTile(
-                          h.icon,
-                          h.title,
-                          h.description,
-                        ),
+                        (h) =>
+                            _buildHighlightTile(h.icon, h.title, h.description),
                       ),
                       const SizedBox(height: 20),
                       Container(
@@ -638,7 +636,34 @@ class _TourPackageDetailScreenState extends State<TourPackageDetailScreen> {
                 children: [
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: () {},
+                      onPressed: () {
+                        // Extract price from budget string (e.g., "$400 – $550 per person")
+                        final priceStr = widget.budgetUsd.replaceAll(
+                          RegExp(r'[^\d]'),
+                          '',
+                        );
+                        final price =
+                            int.tryParse(priceStr.substring(0, 3)) ?? 400;
+
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => PaymentScreen(
+                              packageName: widget.title,
+                              totalAmount:
+                                  price.toDouble() *
+                                  2, // Assume 2 people minimum
+                              numberOfPeople: 2,
+                              packageDetails: {
+                                'duration': widget.duration,
+                                'route': widget.route,
+                                'guide': widget.guide,
+                                'accommodation':
+                                    widget.initialAccommodationName,
+                              },
+                            ),
+                          ),
+                        );
+                      },
                       icon: const Icon(
                         Icons.arrow_forward,
                         color: Colors.white,
@@ -814,10 +839,7 @@ class _TourPackageDetailScreenState extends State<TourPackageDetailScreen> {
 }
 
 class _ArrowCircleButton extends StatelessWidget {
-  const _ArrowCircleButton({
-    required this.icon,
-    required this.onPressed,
-  });
+  const _ArrowCircleButton({required this.icon, required this.onPressed});
 
   final IconData icon;
   final VoidCallback onPressed;

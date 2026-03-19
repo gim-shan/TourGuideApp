@@ -6,6 +6,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hidmo_app/features/tourist/tour_packages/tour_packages.dart';
 import 'package:hidmo_app/features/ar/ar_preview_screen.dart';
 import 'package:hidmo_app/features/chat/ai_assistant_screen.dart';
+import 'package:hidmo_app/features/guides/presentation/screens/guides_screen.dart';
+import 'package:hidmo_app/features/translator/translator_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final int initialIndex;
@@ -282,11 +284,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           const Center(child: Text("Map Page", style: TextStyle(fontSize: 24))),
-          const Center(
-            child: Text("Explore Page", style: TextStyle(fontSize: 24)),
+          SafeArea(
+            child: TourPackagesScreen(initialIndex: 2, showBottomNav: false),
           ),
-          const Center(
-            child: Text("Settings Page", style: TextStyle(fontSize: 24)),
+          SafeArea(
+            child: TourPackagesScreen(initialIndex: 3, showBottomNav: false),
           ),
         ],
       ),
@@ -297,10 +299,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           height: 64,
           backgroundColor: Colors.white,
           indicatorColor: _navGreen,
-          labelTextStyle: WidgetStateProperty.all(
+          labelTextStyle: MaterialStateProperty.all(
             const TextStyle(fontSize: 0, height: 0),
           ),
-          iconTheme: WidgetStateProperty.resolveWith((states) {
+          iconTheme: MaterialStateProperty.resolveWith((states) {
             final isSelected = states.contains(WidgetState.selected);
             return IconThemeData(
               size: 26,
@@ -332,8 +334,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               label: 'Explore',
             ),
             NavigationDestination(
-              icon: Icon(Icons.settings_rounded),
-              label: 'Settings',
+              icon: Icon(Icons.calendar_month_rounded),
+              label: 'Bookings',
             ),
           ],
         ),
@@ -584,15 +586,28 @@ Widget _buildFeatureGrid(BuildContext context) {
               MaterialPageRoute(builder: (_) => const AiAssistantScreen()),
             );
             return;
-          }
-          if (title == "Tour Packages") {
+          } else if (title == "Tour Packages") {
             Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const TourPackagesScreen()),
+              MaterialPageRoute(
+                builder: (_) => TourPackagesScreen(initialIndex: 2),
+              ),
             );
+            return;
+          } else if (title == "Tour Guide") {
+            Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const GuidesScreen()));
+            return;
           } else if (title == "AR/VR") {
             Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const ArPreviewListScreen()),
             );
+            return;
+          } else if (title == "Translator") {
+            Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const TranslatorScreen()));
+            return;
           }
         },
       );
