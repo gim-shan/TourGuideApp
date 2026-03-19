@@ -205,6 +205,20 @@ async function handleStripeWebhook(req, res) {
   res.json({ received: true });
 }
 
+// Health check endpoint - returns 200 OK to verify server is running
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    message: 'Server is running',
+    endpoints: ['/groq-generate', '/generate', '/createPaymentIntent', '/saveBooking', '/stripe-webhook']
+  });
+});
+
+// Also allow GET request to /groq-generate for health checking
+app.get('/groq-generate', (req, res) => {
+  res.json({ status: 'ok', message: 'Groq endpoint is ready. Use POST to send prompts.' });
+});
+
 // Route definitions
 app.post('/groq-generate', handleGroqGenerate);
 app.post('/generate', handleGroqGenerate);

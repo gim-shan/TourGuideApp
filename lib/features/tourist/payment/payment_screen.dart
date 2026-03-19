@@ -79,7 +79,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   // For local testing, use 'http://localhost:3000'
   // For emulator testing, use 'http://10.0.2.2:3000' (Android emulator)
   // For production, use Firebase Cloud Functions URL
-  static const String _paymentServerUrl = 'http://192.168.1.26:3000';
+  static const String _paymentServerUrl = 'http://10.121.182.41:3000';
 
   Future<Map<String, dynamic>?> _createPaymentIntent(
     int amount,
