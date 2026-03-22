@@ -8,6 +8,10 @@ import 'package:hidmo_app/features/ar/ar_preview_screen.dart';
 import 'package:hidmo_app/features/chat/ai_assistant_screen.dart';
 import 'package:hidmo_app/features/guides/presentation/screens/guides_screen.dart';
 import 'package:hidmo_app/features/translator/translator_screen.dart';
+import 'package:hidmo_app/features/live_events/presentation/screens/live_events_screen.dart';
+import 'package:hidmo_app/features/profile/presentation/screens/user_profile_screen.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 class DashboardScreen extends StatefulWidget {
   final int initialIndex;
@@ -161,26 +165,54 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          "Hello, ${_userName == null || _userName!.isEmpty ? 'Traveller' : _userName!}!",
-                          style: const TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            color: Color.fromARGB(255, 19, 53, 20),
+                        Expanded(
+                          child: Text(
+                            "Hello, ${_userName == null || _userName!.isEmpty ? 'Traveller' : _userName!}!",
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Color.fromARGB(255, 19, 53, 20),
+                            ),
+                            softWrap: true,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                           ),
                         ),
-                        Container(
-                          padding: const EdgeInsets.all(2),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.black, width: 2),
+                        GestureDetector(
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const UserProfileScreen(),
+                            ),
                           ),
-                          child: ClipOval(
-                            child: Image.asset(
-                              "assets/icons/User.png",
-                              width: 38,
-                              height: 38,
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: const LinearGradient(
+                                colors: [Color(0xff1b9c4d), Color(0xff0e5a3c)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Center(
+                              child: Text(
+                                (_userName != null && _userName!.isNotEmpty
+                                        ? _userName![0]
+                                        : 'U')
+                                    .toUpperCase(),
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -283,12 +315,211 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
           ),
-          const Center(child: Text("Map Page", style: TextStyle(fontSize: 24))),
+          // Map of Sri Lanka
           SafeArea(
-            child: TourPackagesScreen(initialIndex: 2, showBottomNav: false),
+            child: Column(
+              children: [
+                const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text(
+                    "Explore Sri Lanka",
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Color.fromARGB(255, 19, 53, 20),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(24),
+                      bottom: Radius.circular(0),
+                    ),
+                    child: FlutterMap(
+                      options: MapOptions(
+                        initialCenter: const LatLng(
+                          7.8731,
+                          80.7718,
+                        ), // Center of Sri Lanka
+                        initialZoom: 7.5,
+                        minZoom: 6.0,
+                        maxZoom: 18.0,
+                      ),
+                      children: [
+                        TileLayer(
+                          urlTemplate:
+                              'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                          userAgentPackageName: 'com.example.hidmo_app',
+                        ),
+                        MarkerLayer(
+                          markers: [
+                            // Colombo
+                            const Marker(
+                              point: LatLng(6.9271, 79.8612),
+                              width: 40,
+                              height: 40,
+                              child: Icon(
+                                Icons.location_city,
+                                color: Color(0xff1b9c4d),
+                                size: 30,
+                              ),
+                            ),
+                            // Kandy
+                            const Marker(
+                              point: LatLng(7.2906, 80.6337),
+                              width: 40,
+                              height: 40,
+                              child: Icon(
+                                Icons.place,
+                                color: Color(0xff1b9c4d),
+                                size: 30,
+                              ),
+                            ),
+                            // Sigiriya
+                            const Marker(
+                              point: LatLng(7.9570, 80.7601),
+                              width: 40,
+                              height: 40,
+                              child: Icon(
+                                Icons.place,
+                                color: Color(0xff1b9c4d),
+                                size: 30,
+                              ),
+                            ),
+                            // Nuwara Eliya
+                            const Marker(
+                              point: LatLng(6.9497, 80.7891),
+                              width: 40,
+                              height: 40,
+                              child: Icon(
+                                Icons.place,
+                                color: Color(0xff1b9c4d),
+                                size: 30,
+                              ),
+                            ),
+                            // Ella
+                            const Marker(
+                              point: LatLng(6.8661, 81.0466),
+                              width: 40,
+                              height: 40,
+                              child: Icon(
+                                Icons.place,
+                                color: Color(0xff1b9c4d),
+                                size: 30,
+                              ),
+                            ),
+                            // Galle
+                            const Marker(
+                              point: LatLng(6.0535, 80.2210),
+                              width: 40,
+                              height: 40,
+                              child: Icon(
+                                Icons.place,
+                                color: Color(0xff1b9c4d),
+                                size: 30,
+                              ),
+                            ),
+                            // Jaffna
+                            const Marker(
+                              point: LatLng(9.6615, 80.0255),
+                              width: 40,
+                              height: 40,
+                              child: Icon(
+                                Icons.place,
+                                color: Color(0xff1b9c4d),
+                                size: 30,
+                              ),
+                            ),
+                            // Anuradhapura
+                            const Marker(
+                              point: LatLng(8.3114, 80.4037),
+                              width: 40,
+                              height: 40,
+                              child: Icon(
+                                Icons.place,
+                                color: Color(0xff1b9c4d),
+                                size: 30,
+                              ),
+                            ),
+                            // Trincomalee
+                            const Marker(
+                              point: LatLng(8.5874, 81.2151),
+                              width: 40,
+                              height: 40,
+                              child: Icon(
+                                Icons.place,
+                                color: Color(0xff1b9c4d),
+                                size: 30,
+                              ),
+                            ),
+                            // Mirissa
+                            const Marker(
+                              point: LatLng(5.9480, 80.5473),
+                              width: 40,
+                              height: 40,
+                              child: Icon(
+                                Icons.place,
+                                color: Color(0xff1b9c4d),
+                                size: 30,
+                              ),
+                            ),
+                            // Polonnaruwa
+                            const Marker(
+                              point: LatLng(7.9403, 81.0012),
+                              width: 40,
+                              height: 40,
+                              child: Icon(
+                                Icons.place,
+                                color: Color(0xff1b9c4d),
+                                size: 30,
+                              ),
+                            ),
+                            // Dambulla
+                            const Marker(
+                              point: LatLng(7.8868, 80.6496),
+                              width: 40,
+                              height: 40,
+                              child: Icon(
+                                Icons.place,
+                                color: Color(0xff1b9c4d),
+                                size: 30,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                // Legend
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  color: Colors.white,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _buildLegendItem(Icons.location_city, "Colombo"),
+                      _buildLegendItem(Icons.place, "Popular Places"),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
           SafeArea(
-            child: TourPackagesScreen(initialIndex: 3, showBottomNav: false),
+            child: TourPackagesScreen(
+              initialIndex: 2,
+              showBottomNav: false,
+              autoFocus: false,
+            ),
+          ),
+          SafeArea(
+            child: TourPackagesScreen(
+              initialIndex: 3,
+              showBottomNav: false,
+              autoFocus: false,
+            ),
           ),
         ],
       ),
@@ -340,6 +571,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildLegendItem(IconData icon, String label) {
+    return Row(
+      children: [
+        Icon(icon, color: const Color(0xff1b9c4d), size: 20),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 12, color: Colors.black87),
+        ),
+      ],
     );
   }
 }
@@ -589,7 +833,8 @@ Widget _buildFeatureGrid(BuildContext context) {
           } else if (title == "Tour Packages") {
             Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (_) => TourPackagesScreen(initialIndex: 2),
+                builder: (_) =>
+                    const TourPackagesScreen(initialIndex: 2, autoFocus: false),
               ),
             );
             return;
@@ -597,6 +842,11 @@ Widget _buildFeatureGrid(BuildContext context) {
             Navigator.of(
               context,
             ).push(MaterialPageRoute(builder: (_) => const GuidesScreen()));
+            return;
+          } else if (title == "Live Events") {
+            Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const LiveEventsScreen()));
             return;
           } else if (title == "AR/VR") {
             Navigator.of(context).push(

@@ -4,19 +4,26 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:hidmo_app/core/services/push_notification_service.dart';
 
 class PaymentScreen extends StatefulWidget {
   final String packageName;
   final double totalAmount;
   final int numberOfPeople;
+  final DateTime bookingDate;
   final Map<String, dynamic> packageDetails;
+  final String? guideId;
+  final String? guideName;
 
   const PaymentScreen({
     super.key,
     required this.packageName,
     required this.totalAmount,
     required this.numberOfPeople,
+    required this.bookingDate,
     required this.packageDetails,
+    this.guideId,
+    this.guideName,
   });
 
   @override
@@ -26,6 +33,7 @@ class PaymentScreen extends StatefulWidget {
 class _PaymentScreenState extends State<PaymentScreen> {
   bool _isLoading = false;
   bool _isProcessing = false;
+  bool _isPaymentReady = false;
   Map<String, dynamic>? _paymentIntentData;
 
   @override
@@ -37,6 +45,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   Future<void> _initializePayment() async {
     setState(() {
       _isLoading = true;
+      _isPaymentReady = false;
     });
 
     try {
@@ -61,6 +70,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 ),
           ),
         );
+        setState(() {
+          _isPaymentReady = true;
+        });
       } else {
         _showError('Payment initialization failed. Please try again.');
       }
@@ -71,6 +83,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     } catch (e) {
       setState(() {
         _isLoading = false;
+        _isPaymentReady = false;
       });
       _showError('Failed to initialize payment: ${e.toString()}');
     }
@@ -88,7 +101,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     try {
       // Call your payment server to create payment intent
       final response = await http.post(
-        Uri.parse('$_paymentServerUrl/create-payment-intent'),
+        Uri.parse('$_paymentServerUrl/createPaymentIntent'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'amount': amount,
@@ -105,7 +118,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
         }
         return data;
       } else {
-        _showError('Failed to create payment intent');
+        final errorData = jsonDecode(response.body);
+        _showError(
+          'Server error: ${errorData['error'] ?? response.statusCode}',
+        );
         return null;
       }
     } catch (e) {
@@ -162,10 +178,35 @@ class _PaymentScreenState extends State<PaymentScreen> {
         'bookingDate': FieldValue.serverTimestamp(),
         'paymentStatus': 'paid',
         'paymentId': 'pi_${DateTime.now().millisecondsSinceEpoch}',
-        'status': 'confirmed',
+        'status': 'pending', // Set to pending so guide can accept/reject
+        // Guide assignment (if guide was selected)
+        if (widget.guideId != null) 'guideId': widget.guideId,
+        if (widget.guideName != null) 'guideName': widget.guideName,
       };
 
-      await FirebaseFirestore.instance.collection('bookings').add(bookingData);
+      // Create the booking
+      final bookingRef = await FirebaseFirestore.instance
+          .collection('bookings')
+          .add(bookingData);
+
+      // If a guide was assigned, send notification to the guide
+      if (widget.guideId != null) {
+        // Get tourist name for the notification
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+        final touristName =
+            userDoc.data()?['name'] ?? user.displayName ?? 'A tourist';
+
+        // Send notification to the guide
+        await PushNotificationService.sendTourAssignedNotification(
+          guideId: widget.guideId!,
+          touristName: touristName,
+          packageName: widget.packageName,
+          bookingId: bookingRef.id,
+        );
+      }
     } catch (e) {
       _showError('Failed to save booking: ${e.toString()}');
     }
@@ -208,6 +249,51 @@ class _PaymentScreenState extends State<PaymentScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
+          : !_isPaymentReady
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      color: Colors.red,
+                      size: 64,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Payment initialization failed',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Please check your internet connection and try again.',
+                      style: TextStyle(color: Colors.grey),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: _initializePayment,
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Retry'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1E4D3C),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
           : SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -284,7 +370,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
-                      onPressed: _isProcessing ? null : _presentPaymentSheet,
+                      onPressed: (_isProcessing || !_isPaymentReady)
+                          ? null
+                          : _presentPaymentSheet,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF1E4D3C),
                         foregroundColor: Colors.white,

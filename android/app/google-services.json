@@ -12,7 +12,20 @@
           "package_name": "com.example.hidmo_app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "907169982246-n10qmqrfip298l88j1fq2u3hrin1ardi.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.hidmo_app",
+            "certificate_hash": "da8fee3fd8ede9f24e6beb44a0371374a31f5a40"
+          }
+        },
+        {
+          "client_id": "907169982246-dimmrl48esd2qfceo9bt42vndnmmgoei.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCnTTNyKG-zjL41jL7z_IpHbxJQus8wV9Y"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "907169982246-dimmrl48esd2qfceo9bt42vndnmmgoei.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

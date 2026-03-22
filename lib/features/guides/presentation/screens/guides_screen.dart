@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:hidmo_app/features/guides/presentation/screens/guide_profile_screen.dart';
+import 'package:hidmo_app/features/guide/data/models/guide_profile.dart';
+import 'package:hidmo_app/features/guide/data/services/guide_profile_service.dart';
+import 'package:hidmo_app/features/guide/presentation/screens/guide_profile_screen.dart';
+import 'package:hidmo_app/core/widgets/profile_avatar.dart';
 
 class GuidesScreen extends StatefulWidget {
   const GuidesScreen({super.key});
@@ -11,213 +14,55 @@ class GuidesScreen extends StatefulWidget {
 class _GuidesScreenState extends State<GuidesScreen> {
   static const Color _green = Color(0xff1b9c4d);
 
-  // sample data extended with `verified`, `expertise` and `price`
-  final Map<String, List<Map<String, Object>>> _sample = {
-    "Galle": [
-      {
-        "name": "John Perera",
-        "rating": "4.9",
-        "trips": 98,
-        "price": 50,
-        "verified": true,
-        "expertise": ["history", "story telling"],
-      },
-      {
-        "name": "Kamal De SIlva",
-        "rating": "4.8",
-        "trips": 88,
-        "price": 45,
-        "verified": true,
-        "expertise": ["leopard tracking", "hiking and nature"],
-      },
-      {
-        "name": "Nimal Perera",
-        "rating": "4.7",
-        "trips": 70,
-        "price": 35,
-        "verified": false,
-        "expertise": ["history"],
-      },
-      {
-        "name": "Sunil D.",
-        "rating": "4.6",
-        "trips": 55,
-        "price": 30,
-        "verified": false,
-        "expertise": ["story telling"],
-      },
-    ],
-    "Kandy": [
-      {
-        "name": "Sunitha Raj",
-        "rating": "4.9",
-        "trips": 120,
-        "price": 55,
-        "verified": true,
-        "expertise": ["history", "story telling"],
-      },
-      {
-        "name": "Aruna Kumar",
-        "rating": "4.7",
-        "trips": 65,
-        "price": 40,
-        "verified": false,
-        "expertise": ["hiking and nature"],
-      },
-      {
-        "name": "Priya L.",
-        "rating": "4.6",
-        "trips": 42,
-        "price": 35,
-        "verified": false,
-        "expertise": ["leopard tracking"],
-      },
-      {
-        "name": "Rohan T.",
-        "rating": "4.5",
-        "trips": 30,
-        "price": 30,
-        "verified": false,
-        "expertise": ["story telling"],
-      },
-    ],
-    "Trincomalee": [
-      {
-        "name": "Nadeesha P.",
-        "rating": "4.8",
-        "trips": 76,
-        "price": 45,
-        "verified": true,
-        "expertise": ["history"],
-      },
-      {
-        "name": "Lasitha M.",
-        "rating": "4.6",
-        "trips": 54,
-        "price": 35,
-        "verified": false,
-        "expertise": ["hiking and nature"],
-      },
-      {
-        "name": "Dulip S.",
-        "rating": "4.4",
-        "trips": 22,
-        "price": 30,
-        "verified": false,
-        "expertise": ["leopard tracking"],
-      },
-      {
-        "name": "Maya K.",
-        "rating": "4.3",
-        "trips": 18,
-        "price": 25,
-        "verified": false,
-        "expertise": ["story telling"],
-      },
-    ],
-    "Mirissa": [
-      {
-        "name": "Kusuma R.",
-        "rating": "4.9",
-        "trips": 102,
-        "price": 50,
-        "verified": true,
-        "expertise": ["hiking and nature"],
-      },
-      {
-        "name": "Vasantha F.",
-        "rating": "4.7",
-        "trips": 68,
-        "price": 40,
-        "verified": false,
-        "expertise": ["history"],
-      },
-      {
-        "name": "Saman G.",
-        "rating": "4.5",
-        "trips": 44,
-        "price": 35,
-        "verified": false,
-        "expertise": ["leopard tracking"],
-      },
-      {
-        "name": "Leena Q.",
-        "rating": "4.4",
-        "trips": 26,
-        "price": 30,
-        "verified": false,
-        "expertise": ["story telling"],
-      },
-    ],
-    "Ella": [
-      {
-        "name": "John Perera",
-        "rating": "4.9",
-        "trips": 98,
-        "price": 55,
-        "verified": true,
-        "expertise": ["history"],
-      },
-      {
-        "name": "Kamal De SIlva",
-        "rating": "4.8",
-        "trips": 88,
-        "price": 50,
-        "verified": true,
-        "expertise": ["leopard tracking"],
-      },
-      {
-        "name": "Nimal Perera",
-        "rating": "4.7",
-        "trips": 70,
-        "price": 40,
-        "verified": false,
-        "expertise": ["hiking and nature"],
-      },
-      {
-        "name": "Sunil D.",
-        "rating": "4.6",
-        "trips": 55,
-        "price": 35,
-        "verified": false,
-        "expertise": ["story telling"],
-      },
-    ],
-    "Anuradhapura": [
-      {
-        "name": "John Perera",
-        "rating": "4.9",
-        "price": 50,
-        "trips": 98,
-        "verified": true,
-        "expertise": ["history"],
-      },
-      {
-        "name": "Kamal De SIlva",
-        "rating": "4.8",
-        "price": 45,
-        "trips": 88,
-        "verified": true,
-        "expertise": ["hiking and nature"],
-      },
-      {
-        "name": "Nimal Perera",
-        "rating": "4.7",
-        "price": 35,
-        "trips": 70,
-        "verified": false,
-        "expertise": ["story telling"],
-      },
-      {
-        "name": "Sunil D.",
-        "rating": "4.6",
-        "price": 30,
-        "trips": 55,
-        "verified": false,
-        "expertise": ["leopard tracking"],
-      },
-    ],
-  };
+  final GuideProfileService _guideService = GuideProfileService();
+  List<GuideProfile> _guides = [];
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadGuides();
+  }
+
+  Future<void> _loadGuides() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+
+      // Get real guides from Firestore
+      final realGuides = await _guideService.getAllGuides();
+
+      // Get dummy guides
+      final dummyGuides = GuideProfileService.getDummyGuides();
+
+      // Combine real guides + dummy guides (always show both)
+      final guides = [...realGuides, ...dummyGuides];
+
+      setState(() {
+        _guides = guides;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  // Group guides by location
+  Map<String, List<GuideProfile>> get _guidesByLocation {
+    final Map<String, List<GuideProfile>> grouped = {};
+    for (var guide in _guides) {
+      final location = guide.location ?? 'Other';
+      grouped.putIfAbsent(location, () => []);
+      grouped[location]!.add(guide);
+    }
+    return grouped;
+  }
 
   // filters
   String _selectedMainFilter =
@@ -281,7 +126,7 @@ class _GuidesScreenState extends State<GuidesScreen> {
   }
 
   Widget _buildLocationDropdown() {
-    final locations = _sample.keys.toList();
+    final locations = _guidesByLocation.keys.toList();
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
@@ -330,16 +175,16 @@ class _GuidesScreenState extends State<GuidesScreen> {
     );
   }
 
-  Widget _buildGuideCard(Map<String, Object> info, int index) {
-    final name = info['name'] as String;
-    final rating = info['rating'] as String;
-    final trips = info['trips'] as int;
-    final price = (info['price'] as int?) ?? 0;
-    final verified = (info['verified'] as bool?) ?? false;
+  Widget _buildGuideCard(GuideProfile guide, int index) {
+    final name = guide.name;
+    final rating = guide.rating > 0 ? guide.rating.toStringAsFixed(1) : 'New';
+    final trips = guide.totalTours;
+    // Use a default price or you could add price to the model
+    final price = 50; // Default price
 
     return InkWell(
       onTap: () {
-        Navigator.of(context).pop(info);
+        Navigator.of(context).pop(guide);
       },
       borderRadius: BorderRadius.circular(12),
       child: Container(
@@ -361,17 +206,11 @@ class _GuidesScreenState extends State<GuidesScreen> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  height: 64,
-                  width: 64,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: _green, width: 4),
-                  ),
-                  child: const CircleAvatar(
-                    backgroundColor: Colors.grey,
-                    radius: 28,
-                  ),
+                ProfileAvatar(
+                  userName: name,
+                  size: 60,
+                  showBorder: true,
+                  borderWidth: 3,
                 ),
                 const Spacer(),
                 Column(
@@ -379,20 +218,20 @@ class _GuidesScreenState extends State<GuidesScreen> {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.star, color: Colors.amber, size: 16),
-                        const SizedBox(width: 4),
-                        Text(rating),
+                        const Icon(Icons.star, color: Colors.amber, size: 14),
+                        const SizedBox(width: 2),
+                        Text(rating, style: const TextStyle(fontSize: 12)),
                       ],
                     ),
                     Text(
-                      '($trips trips)',
-                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                      '($trips tours)',
+                      style: const TextStyle(fontSize: 11, color: Colors.grey),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
                       '\$$price/day',
                       style: const TextStyle(
-                        fontSize: 14,
+                        fontSize: 13,
                         fontWeight: FontWeight.bold,
                         color: _green,
                       ),
@@ -401,7 +240,7 @@ class _GuidesScreenState extends State<GuidesScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             Row(
               children: [
                 Expanded(
@@ -413,11 +252,13 @@ class _GuidesScreenState extends State<GuidesScreen> {
                     ),
                   ),
                 ),
-                if (verified)
+                // Show verified badge if guide has certification
+                if (guide.certification != null &&
+                    guide.certification!.isNotEmpty)
                   Container(
                     height: 20,
                     width: 20,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: _green,
                       shape: BoxShape.circle,
                     ),
@@ -429,6 +270,31 @@ class _GuidesScreenState extends State<GuidesScreen> {
                   ),
               ],
             ),
+            // Show specializations
+            if (guide.specializations.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 3),
+                child: Wrap(
+                  spacing: 3,
+                  runSpacing: 3,
+                  children: guide.specializations.take(2).map((spec) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 5,
+                        vertical: 1,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _green.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                      child: Text(
+                        spec,
+                        style: const TextStyle(fontSize: 9, color: _green),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
             const SizedBox(height: 8),
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -438,41 +304,41 @@ class _GuidesScreenState extends State<GuidesScreen> {
                     backgroundColor: const Color(0xffffc107),
                     foregroundColor: Colors.black,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(18),
                     ),
                     minimumSize: const Size(100, 36),
                   ),
                   onPressed: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => GuideProfileScreen(info: info),
+                        builder: (_) => GuideProfileScreen(guideId: guide.uid),
                       ),
                     );
                   },
-                  child: const Text('View'),
+                  child: const Text('View', style: TextStyle(fontSize: 13)),
                 ),
                 const SizedBox(height: 8),
                 InkWell(
                   onTap: () {
-                    Navigator.of(context).pop(info);
+                    Navigator.of(context).pop(guide);
                   },
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(18),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 20,
-                      vertical: 10,
+                      vertical: 9,
                     ),
                     decoration: BoxDecoration(
                       color: _green,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(18),
                     ),
                     child: const Text(
                       'Select',
                       textAlign: TextAlign.center,
                       style: TextStyle(
+                        fontSize: 13,
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
                       ),
                     ),
                   ),
@@ -485,120 +351,181 @@ class _GuidesScreenState extends State<GuidesScreen> {
     );
   }
 
-  List<Map<String, Object>> _applyFilters(List<Map<String, Object>> list) {
-    var filtered = List<Map<String, Object>>.from(list);
-
-    if (_selectedMainFilter == 'Top Rated') {
-      filtered.sort((a, b) {
-        final ra = double.tryParse(a['rating'] as String) ?? 0;
-        final rb = double.tryParse(b['rating'] as String) ?? 0;
-        return rb.compareTo(ra);
-      });
-    }
-
-    if (_selectedMainFilter == 'Experts' && _selectedExpertCategory != null) {
-      filtered = filtered.where((g) {
-        final expertise =
-            (g['expertise'] as List<Object>?)
-                ?.map((e) => e.toString().toLowerCase())
-                .toList() ??
-            [];
-        return expertise.contains(_selectedExpertCategory);
-      }).toList();
-    }
-
-    return filtered;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 241, 238, 238),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 6),
-                const Center(
-                  child: Text(
-                    'Find your Local Guide',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xff0e5a3c),
+        child: _isLoading
+            ? const Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1E4D3C)),
+                ),
+              )
+            : _error != null
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Error: $_error'),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _loadGuides,
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              )
+            : RefreshIndicator(
+                onRefresh: _loadGuides,
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(18),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 6),
+                        const Center(
+                          child: Text(
+                            'Find your Local Guide',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xff0e5a3c),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        _buildFilterChips(),
+                        const SizedBox(height: 18),
+
+                        // Check if there are any guides
+                        if (_guides.isEmpty)
+                          const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(32),
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    Icons.person_search,
+                                    size: 64,
+                                    color: Colors.grey,
+                                  ),
+                                  SizedBox(height: 16),
+                                  Text(
+                                    'No guides available yet',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    ' guides will appear here once they sign up',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        else
+                          // Sections per location (respect selected location)
+                          ..._buildGuideSections(),
+                        const SizedBox(height: 56),
+                      ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 14),
-                _buildFilterChips(),
-                const SizedBox(height: 18),
-
-                // Sections per location (respect selected location)
-                ..._sample.entries
-                    .where(
-                      (e) =>
-                          _selectedLocation == null ||
-                          e.key == _selectedLocation,
-                    )
-                    .map((entry) {
-                      final location = entry.key;
-                      final list = _applyFilters(
-                        List<Map<String, Object>>.from(entry.value),
-                      );
-                      if (list.isEmpty) return const SizedBox.shrink();
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 8),
-                          Text(
-                            location,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          GridView.builder(
-                            padding: EdgeInsets.zero,
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 2,
-                                  mainAxisSpacing: 12,
-                                  crossAxisSpacing: 12,
-                                  childAspectRatio: 0.6,
-                                ),
-                            itemCount: list.length,
-                            itemBuilder: (context, i) =>
-                                _buildGuideCard(list[i], i),
-                          ),
-                          const SizedBox(height: 6),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: const [
-                              Text(
-                                'View more',
-                                style: TextStyle(color: Colors.black54),
-                              ),
-                              Icon(Icons.arrow_right_alt),
-                            ],
-                          ),
-                          const SizedBox(height: 18),
-                        ],
-                      );
-                    })
-                    .toList(),
-                const SizedBox(height: 80),
-              ],
-            ),
-          ),
-        ),
+              ),
       ),
     );
+  }
+
+  List<Widget> _buildGuideSections() {
+    final guidesByLocation = _guidesByLocation;
+    final sections = <Widget>[];
+
+    // Get unique locations from guides
+    final locations = guidesByLocation.keys.toList();
+
+    // Filter locations based on selected location
+    final filteredLocations = _selectedLocation == null
+        ? locations
+        : locations.where((l) => l == _selectedLocation).toList();
+
+    for (final location in filteredLocations) {
+      final guidesInLocation = guidesByLocation[location] ?? [];
+
+      // Apply filters
+      var filteredGuides = _applyRealFilters(guidesInLocation);
+
+      if (filteredGuides.isEmpty) continue;
+
+      sections.add(
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 8),
+            Text(
+              location,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            GridView.builder(
+              padding: EdgeInsets.zero,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                childAspectRatio: 0.6,
+              ),
+              itemCount: filteredGuides.length,
+              itemBuilder: (context, i) =>
+                  _buildGuideCard(filteredGuides[i], i),
+            ),
+            const SizedBox(height: 6),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: const [
+                Text('View more', style: TextStyle(color: Colors.black54)),
+                Icon(Icons.arrow_right_alt),
+              ],
+            ),
+            const SizedBox(height: 18),
+          ],
+        ),
+      );
+    }
+
+    return sections;
+  }
+
+  List<GuideProfile> _applyRealFilters(List<GuideProfile> list) {
+    var filtered = List<GuideProfile>.from(list);
+
+    if (_selectedMainFilter == 'Top Rated') {
+      filtered.sort((a, b) => b.rating.compareTo(a.rating));
+    }
+
+    if (_selectedMainFilter == 'Experts' && _selectedExpertCategory != null) {
+      filtered = filtered.where((g) {
+        final specializations = g.specializations
+            .map((e) => e.toLowerCase())
+            .toList();
+        return specializations.any(
+          (spec) =>
+              spec.contains(_selectedExpertCategory!.toLowerCase()) ||
+              _selectedExpertCategory!.toLowerCase().contains(spec),
+        );
+      }).toList();
+    }
+
+    return filtered;
   }
 }

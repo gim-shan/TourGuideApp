@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:hidmo_app/core/widgets/custom_app_bar.dart';
+import 'package:hidmo_app/features/profile/presentation/screens/user_profile_screen.dart';
 import 'package:hidmo_app/features/auth/presentation/screens/dashboard_screens/dashboard.dart';
 import 'package:hidmo_app/features/guides/presentation/screens/guides_screen.dart';
+import 'package:hidmo_app/features/guide/data/models/guide_profile.dart';
 import 'package:hidmo_app/features/tourist/hotels/explore_hotels_screen.dart';
 import 'package:hidmo_app/features/tourist/payment/payment_screen.dart';
 
@@ -13,9 +16,37 @@ class TourCustomizerScreen extends StatefulWidget {
 
 class _TourCustomizerScreenState extends State<TourCustomizerScreen> {
   int people = 1;
+  DateTime? selectedDate;
   static const Color _navGreen = Color(0xff1b9c4d);
   static const Color _navIdle = Color(0xff0e5a3c);
   int _selectedNavIndex = 2;
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now().add(const Duration(days: 1)),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xff1b9c4d),
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: Color(0xFF1E4D3C),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null && picked != selectedDate) {
+      setState(() {
+        selectedDate = picked;
+      });
+    }
+  }
 
   final List<Map<String, dynamic>> accommodations = [
     {
@@ -61,7 +92,7 @@ class _TourCustomizerScreenState extends State<TourCustomizerScreen> {
       'name': 'Galle Fort',
       'price': 8,
       'desc': 'Colonial-era fortifications',
-      'image': 'assets/images/galle.jpg',
+      'image': 'assets/images/gallefort.jpg',
     },
     {
       'name': 'Nuwara Eliya',
@@ -79,19 +110,19 @@ class _TourCustomizerScreenState extends State<TourCustomizerScreen> {
       'name': 'Yala Safari',
       'price': 25,
       'desc': 'Leopard & Wildlife Park',
-      'image': 'assets/images/image.png',
+      'image': 'assets/images/yala.jpg',
     },
     {
       'name': 'Polonnaruwa',
       'price': 15,
       'desc': 'Ancient Kingdom Ruins',
-      'image': 'assets/images/image16.png',
+      'image': 'assets/images/polonnaruwa.jpg',
     },
     {
       'name': 'Anuradhapura',
       'price': 12,
       'desc': 'Sacred Ancient City',
-      'image': 'assets/images/image17.png',
+      'image': 'assets/images/anuradhapura.jpg',
     },
     {
       'name': 'Mirissa',
@@ -109,13 +140,13 @@ class _TourCustomizerScreenState extends State<TourCustomizerScreen> {
       'name': 'Dambulla',
       'price': 10,
       'desc': 'Cave Temple Complex',
-      'image': 'assets/images/image.png',
+      'image': 'assets/images/dambulla.jpg',
     },
     {
       'name': 'Horton Plains',
       'price': 15,
       'desc': 'World\'s End & Baker\'s Falls',
-      'image': 'assets/images/hortonplains.png',
+      'image': 'assets/images/horton.jpg',
     },
   ];
 
@@ -274,15 +305,12 @@ class _TourCustomizerScreenState extends State<TourCustomizerScreen> {
           ],
         ),
       ),
-      appBar: AppBar(
-        title: const Text(
-          'Customize Your Adventure',
-          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
-        ),
-        backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF1E4D3C),
-        elevation: 0,
-        centerTitle: true,
+      appBar: CustomAppBar(
+        title: 'Customize Your Adventure',
+        showBackButton: true,
+        onProfileTapped: () => Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const UserProfileScreen())),
       ),
       body: Column(
         children: [
@@ -418,9 +446,21 @@ class _TourCustomizerScreenState extends State<TourCustomizerScreen> {
                       final result = await Navigator.of(context).push(
                         MaterialPageRoute(builder: (_) => const GuidesScreen()),
                       );
-                      if (result != null && result is Map) {
+                      if (result != null && result is GuideProfile) {
                         setState(() {
-                          selectedGuides = [Map<String, dynamic>.from(result)];
+                          // Convert GuideProfile to a Map for display
+                          selectedGuides = [
+                            {
+                              'name': result.name,
+                              'price':
+                                  50, // Default price - can be updated if GuideProfile has price field
+                              'desc': result.specializations.isNotEmpty
+                                  ? result.specializations.join(', ')
+                                  : 'Local guide',
+                              'guide':
+                                  result, // Keep the full GuideProfile for reference
+                            },
+                          ];
                         });
                       }
                     },
@@ -779,11 +819,24 @@ class _TourCustomizerScreenState extends State<TourCustomizerScreen> {
                 ),
                 child: Stack(
                   children: [
-                    Center(
-                      child: Icon(
-                        Icons.image_rounded,
-                        size: 40,
-                        color: Colors.grey[400],
+                    ClipRRect(
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(14),
+                      ),
+                      child: Image.asset(
+                        item['image'] as String,
+                        width: double.infinity,
+                        height: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Center(
+                            child: Icon(
+                              Icons.image_rounded,
+                              size: 40,
+                              color: Colors.grey[400],
+                            ),
+                          );
+                        },
                       ),
                     ),
                     if (isSelected)
@@ -1018,36 +1071,109 @@ class _TourCustomizerScreenState extends State<TourCustomizerScreen> {
               isLarge: true,
             ),
             const SizedBox(height: 20),
+
+            // Date Selector
+            Row(
+              children: [
+                const Icon(
+                  Icons.calendar_today,
+                  size: 18,
+                  color: Color.fromARGB(255, 255, 255, 255),
+                ),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Text(
+                    'Booking Date',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Color.fromARGB(255, 255, 255, 255),
+                    ),
+                  ),
+                ),
+                InkWell(
+                  onTap: () => _selectDate(context),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xFF6B7280)),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          selectedDate != null
+                              ? '${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}'
+                              : 'Select Date',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: selectedDate != null
+                                ? Colors.white
+                                : const Color(0xFF6B7280),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.arrow_drop_down,
+                          size: 18,
+                          color: Color(0xFF6B7280),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  // Collect booking details
-                  final bookingDetails = {
-                    'accommodation': selectedAccommodations.isNotEmpty
-                        ? selectedAccommodations.first['name']
-                        : 'None',
-                    'guide': selectedGuides.isNotEmpty
-                        ? selectedGuides.first['name']
-                        : 'None',
-                    'attractions': selectedAttractions.length,
-                    'hiddenGems': selectedHidden.length,
-                    'transport': transportPriceSelected,
-                  };
+                onPressed: selectedDate != null
+                    ? () {
+                        // Collect booking details
+                        final bookingDetails = {
+                          'accommodation': selectedAccommodations.isNotEmpty
+                              ? selectedAccommodations.first['name']
+                              : 'None',
+                          'guide': selectedGuides.isNotEmpty
+                              ? selectedGuides.first['name']
+                              : 'None',
+                          'attractions': selectedAttractions.length,
+                          'hiddenGems': selectedHidden.length,
+                          'transport': transportPriceSelected,
+                        };
 
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => PaymentScreen(
-                        packageName: 'Custom Tour Package',
-                        totalAmount: totalAll.toDouble(),
-                        numberOfPeople: people,
-                        packageDetails: bookingDetails,
-                      ),
-                    ),
-                  );
-                },
+                        // Get guide info if selected
+                        final selectedGuide = selectedGuides.isNotEmpty
+                            ? selectedGuides.first
+                            : null;
+                        final guideId = selectedGuide?['guide']?.uid;
+                        final guideName = selectedGuide?['name'];
+
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => PaymentScreen(
+                              packageName: 'Custom Tour Package',
+                              totalAmount: totalAll.toDouble(),
+                              numberOfPeople: people,
+                              bookingDate: selectedDate!,
+                              packageDetails: bookingDetails,
+                              guideId: guideId,
+                              guideName: guideName,
+                            ),
+                          ),
+                        );
+                      }
+                    : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
+                  backgroundColor: selectedDate != null
+                      ? Colors.white
+                      : Colors.grey[200],
                   foregroundColor: const Color(0xFF1E4D3C),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
@@ -1055,9 +1181,12 @@ class _TourCustomizerScreenState extends State<TourCustomizerScreen> {
                   ),
                   elevation: 0,
                 ),
-                child: const Text(
-                  'Book Now',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                child: Text(
+                  selectedDate != null ? 'Book Now' : 'Please select a date',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
                 ),
               ),
             ),

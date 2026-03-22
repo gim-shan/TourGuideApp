@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:model_viewer_plus/model_viewer_plus.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:panorama_viewer/panorama_viewer.dart';
+import 'package:hidmo_app/core/widgets/custom_app_bar.dart';
+import 'package:hidmo_app/features/profile/presentation/screens/user_profile_screen.dart';
 
 class ArPreviewListScreen extends StatelessWidget {
   const ArPreviewListScreen({super.key});
@@ -11,14 +13,14 @@ class ArPreviewListScreen extends StatelessWidget {
     final destinations = [
       {
         'name': 'Sigiriya',
-        'image': 'assets/images/ninearch.png',
+        'image': 'assets/images/sigiriya.jpg',
         'model': 'https://modelviewer.dev/shared-assets/models/Astronaut.glb',
         'sketchfab':
             'https://sketchfab.com/models/8c85ec4fcbe74fbaae722d8cbb1241c5',
       },
       {
         'name': 'Galle Fort',
-        'image': 'assets/images/mirissa.jpg',
+        'image': 'assets/images/gallefort.jpg',
         'model':
             'https://modelviewer.dev/shared-assets/models/FlightHelmet.glb',
         'panorama':
@@ -26,7 +28,7 @@ class ArPreviewListScreen extends StatelessWidget {
       },
       {
         'name': 'Kandy Temple',
-        'image': 'assets/images/waterfall.jpg',
+        'image': 'assets/images/kandy.jpg',
         'model':
             'https://modelviewer.dev/shared-assets/models/RobotExpressive.glb',
         'panorama':
@@ -40,7 +42,13 @@ class ArPreviewListScreen extends StatelessWidget {
     ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('AR Previews')),
+      appBar: CustomAppBar(
+        title: 'AR Previews',
+        showBackButton: false,
+        onProfileTapped: () => Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const UserProfileScreen())),
+      ),
       body: ListView.separated(
         padding: const EdgeInsets.all(12),
         itemCount: destinations.length,

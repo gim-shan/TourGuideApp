@@ -14,7 +14,7 @@ What things you need to install the software and how to install them:
 - [Dart SDK](https://dart.dev/get-dart) (comes with Flutter)
 - [Android Studio](https://developer.android.com/studio) or [VS Code](https://code.visualstudio.com/) with Flutter/Dart plugins
 - [Git](https://git-scm.com/downloads)
-- [Firebase Account](https://firebase.google.com/) (if using Firebase services)
+- [Node.js](https://nodejs.org/) (for running the local server)
 
 ## Installation
 
@@ -31,23 +31,42 @@ What things you need to install the software and how to install them:
    flutter pub get
    ```
 
-3. Set up Firebase (if applicable):
-   - Create a new project in the [Firebase Console](https://console.firebase.google.com/)
-   - Add your Android and iOS apps to the project
-   - Download `google-services.json` for Android and `GoogleService-Info.plist` for iOS
-   - Place `google-services.json` in `android/app/`
-   - Place `GoogleService-Info.plist` in `ios/Runner/`
-   - Add the SHA-1 fingerprint of your signing certificate to Firebase console
+3. Get your local IP address:
 
-4. Configure environment variables (if applicable):
+   ```bash
+   ipconfig
+   ```
+
+   Note the IPv4 Address (e.g., `192.168.x.x`) - you'll need it for running the local server.
+
+4. Install server dependencies:
+
+   ```bash
+   cd functions
+   npm install
+   ```
+
+5. Configure environment variables (if applicable):
    - Create a `.env` file in the root directory
    - Add your API keys and other environment variables
 
 ## Running the Application
 
-### Development Mode
+### Running the Server (Local)
 
-To run the application in development mode:
+To run the server locally (required for the app to function properly):
+
+```bash
+cd functions
+npm install
+npm start
+```
+
+The server will start on port 3000 (or as configured).
+
+### Running the Flutter App
+
+To run the Flutter application in development mode:
 
 ```bash
 flutter run
@@ -106,16 +125,6 @@ flutter pub get
 - Run `pod install` in the `ios/` directory
 - Ensure Xcode command line tools are up to date: `sudo xcode-select --install`
 - Check iOS deployment target in Xcode
-
-### 4. Firebase Configuration
-
-- Ensure `google-services.json` and `GoogleService-Info.plist` are in the correct locations
-- Rebuild after adding Firebase configuration files
-
-### 5. Missing Plugin Issues
-
-- Make sure to run `flutter pub get` after cloning
-- Check that all plugins are compatible with your Flutter version
 
 ## Additional Configuration
 
