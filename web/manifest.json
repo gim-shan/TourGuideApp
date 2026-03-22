@@ -1,6 +1,6 @@
 {
-    "name": "hidmo_app",
-    "short_name": "hidmo_app",
+    "name": "RouteX",
+    "short_name": "RouteX",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
