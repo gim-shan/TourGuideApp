@@ -4,19 +4,26 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:hidmo_app/core/services/push_notification_service.dart';
 
 class PaymentScreen extends StatefulWidget {
   final String packageName;
   final double totalAmount;
   final int numberOfPeople;
+  final DateTime bookingDate;
   final Map<String, dynamic> packageDetails;
+  final String? guideId;
+  final String? guideName;
 
   const PaymentScreen({
     super.key,
     required this.packageName,
     required this.totalAmount,
     required this.numberOfPeople,
+    required this.bookingDate,
     required this.packageDetails,
+    this.guideId,
+    this.guideName,
   });
 
   @override
@@ -162,10 +169,35 @@ class _PaymentScreenState extends State<PaymentScreen> {
         'bookingDate': FieldValue.serverTimestamp(),
         'paymentStatus': 'paid',
         'paymentId': 'pi_${DateTime.now().millisecondsSinceEpoch}',
-        'status': 'confirmed',
+        'status': 'pending', // Set to pending so guide can accept/reject
+        // Guide assignment (if guide was selected)
+        if (widget.guideId != null) 'guideId': widget.guideId,
+        if (widget.guideName != null) 'guideName': widget.guideName,
       };
 
-      await FirebaseFirestore.instance.collection('bookings').add(bookingData);
+      // Create the booking
+      final bookingRef = await FirebaseFirestore.instance
+          .collection('bookings')
+          .add(bookingData);
+
+      // If a guide was assigned, send notification to the guide
+      if (widget.guideId != null) {
+        // Get tourist name for the notification
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+        final touristName =
+            userDoc.data()?['name'] ?? user.displayName ?? 'A tourist';
+
+        // Send notification to the guide
+        await PushNotificationService.sendTourAssignedNotification(
+          guideId: widget.guideId!,
+          touristName: touristName,
+          packageName: widget.packageName,
+          bookingId: bookingRef.id,
+        );
+      }
     } catch (e) {
       _showError('Failed to save booking: ${e.toString()}');
     }

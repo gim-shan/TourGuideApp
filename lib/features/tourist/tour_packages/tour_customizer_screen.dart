@@ -15,9 +15,37 @@ class TourCustomizerScreen extends StatefulWidget {
 
 class _TourCustomizerScreenState extends State<TourCustomizerScreen> {
   int people = 1;
+  DateTime? selectedDate;
   static const Color _navGreen = Color(0xff1b9c4d);
   static const Color _navIdle = Color(0xff0e5a3c);
   int _selectedNavIndex = 2;
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now().add(const Duration(days: 1)),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xff1b9c4d),
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: Color(0xFF1E4D3C),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null && picked != selectedDate) {
+      setState(() {
+        selectedDate = picked;
+      });
+    }
+  }
 
   final List<Map<String, dynamic>> accommodations = [
     {
@@ -1017,36 +1045,100 @@ class _TourCustomizerScreenState extends State<TourCustomizerScreen> {
               isLarge: true,
             ),
             const SizedBox(height: 20),
+
+            // Date Selector
+            Row(
+              children: [
+                const Icon(
+                  Icons.calendar_today,
+                  size: 18,
+                  color: Color.fromARGB(255, 255, 255, 255),
+                ),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Text(
+                    'Booking Date',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Color.fromARGB(255, 255, 255, 255),
+                    ),
+                  ),
+                ),
+                InkWell(
+                  onTap: () => _selectDate(context),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xFF6B7280)),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          selectedDate != null
+                              ? '${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}'
+                              : 'Select Date',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: selectedDate != null
+                                ? Colors.white
+                                : const Color(0xFF6B7280),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.arrow_drop_down,
+                          size: 18,
+                          color: Color(0xFF6B7280),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  // Collect booking details
-                  final bookingDetails = {
-                    'accommodation': selectedAccommodations.isNotEmpty
-                        ? selectedAccommodations.first['name']
-                        : 'None',
-                    'guide': selectedGuides.isNotEmpty
-                        ? selectedGuides.first['name']
-                        : 'None',
-                    'attractions': selectedAttractions.length,
-                    'hiddenGems': selectedHidden.length,
-                    'transport': transportPriceSelected,
-                  };
+                onPressed: selectedDate != null
+                    ? () {
+                        // Collect booking details
+                        final bookingDetails = {
+                          'accommodation': selectedAccommodations.isNotEmpty
+                              ? selectedAccommodations.first['name']
+                              : 'None',
+                          'guide': selectedGuides.isNotEmpty
+                              ? selectedGuides.first['name']
+                              : 'None',
+                          'attractions': selectedAttractions.length,
+                          'hiddenGems': selectedHidden.length,
+                          'transport': transportPriceSelected,
+                        };
 
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => PaymentScreen(
-                        packageName: 'Custom Tour Package',
-                        totalAmount: totalAll.toDouble(),
-                        numberOfPeople: people,
-                        packageDetails: bookingDetails,
-                      ),
-                    ),
-                  );
-                },
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => PaymentScreen(
+                              packageName: 'Custom Tour Package',
+                              totalAmount: totalAll.toDouble(),
+                              numberOfPeople: people,
+                              bookingDate: selectedDate!,
+                              packageDetails: bookingDetails,
+                            ),
+                          ),
+                        );
+                      }
+                    : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
+                  backgroundColor: selectedDate != null
+                      ? Colors.white
+                      : Colors.grey[200],
                   foregroundColor: const Color(0xFF1E4D3C),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
@@ -1054,9 +1146,12 @@ class _TourCustomizerScreenState extends State<TourCustomizerScreen> {
                   ),
                   elevation: 0,
                 ),
-                child: const Text(
-                  'Book Now',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                child: Text(
+                  selectedDate != null ? 'Book Now' : 'Please select a date',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
                 ),
               ),
             ),

@@ -7,6 +7,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'guide_signup_screen.dart';
 import 'choose_role_screen.dart';
 import 'auth_service.dart';
+import 'package:hidmo_app/features/guide/dashboard/guide_home_screen.dart';
 
 class GSignInScreen extends StatefulWidget {
   const GSignInScreen({super.key});
@@ -73,7 +74,12 @@ class _GSignInScreenState extends State<GSignInScreen> {
           backgroundColor: Colors.green,
         ),
       );
-      // TODO: Navigate to guide home screen
+
+      // Navigate to guide home screen
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const GuideHomeScreen()),
+        (route) => false,
+      );
     } on FirebaseAuthException catch (e) {
       _errorMessage(_mapAuthError(e));
     } catch (_) {
@@ -127,7 +133,12 @@ class _GSignInScreenState extends State<GSignInScreen> {
           backgroundColor: Colors.green,
         ),
       );
-      // TODO: Navigate to guide home screen
+
+      // Navigate to guide home screen
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const GuideHomeScreen()),
+        (route) => false,
+      );
     } on FirebaseAuthException catch (e) {
       _errorMessage(_mapAuthError(e));
     } catch (_) {

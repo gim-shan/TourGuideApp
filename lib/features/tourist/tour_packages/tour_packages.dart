@@ -31,6 +31,10 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
 
   late int _selectedNavIndex;
 
+  // Firestore packages from guides
+  List<Map<String, dynamic>> _firestorePackages = [];
+  bool _isLoadingFirestorePackages = true;
+
   // Favorites management
   final UserProfileRepository _userProfileRepository = UserProfileRepository();
   final Set<String> _favoriteTourIds = {};
@@ -67,6 +71,7 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
     _selectedNavIndex = widget.initialIndex.clamp(0, 3);
     _loadUserBookings();
     _loadFavorites();
+    _loadFirestorePackages();
   }
 
   Future<void> _loadFavorites() async {
@@ -79,8 +84,21 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
         _favoriteTourIds.clear();
         _favoriteTourIds.addAll(favoriteTours);
 
-        // Update package isFavorite flags
-        for (var package in _allPackages) {
+        // Update static package isFavorite flags
+        for (var package in countrysidePackages) {
+          package['isFavorite'] = _favoriteTourIds.contains(package['id']);
+        }
+        for (var package in beachPackages) {
+          package['isFavorite'] = _favoriteTourIds.contains(package['id']);
+        }
+        for (var package in cityPackages) {
+          package['isFavorite'] = _favoriteTourIds.contains(package['id']);
+        }
+        for (var package in wildlifePackages) {
+          package['isFavorite'] = _favoriteTourIds.contains(package['id']);
+        }
+        // Update Firestore package isFavorite flags
+        for (var package in _firestorePackages) {
           package['isFavorite'] = _favoriteTourIds.contains(package['id']);
         }
       });
@@ -100,20 +118,44 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
         await _userProfileRepository.removeFromFavorites(tourId);
         setState(() {
           _favoriteTourIds.remove(tourId);
-          for (var package in _allPackages) {
-            if (package['id'] == tourId) {
-              package['isFavorite'] = false;
-            }
+          // Update static packages
+          for (var package in countrysidePackages) {
+            if (package['id'] == tourId) package['isFavorite'] = false;
+          }
+          for (var package in beachPackages) {
+            if (package['id'] == tourId) package['isFavorite'] = false;
+          }
+          for (var package in cityPackages) {
+            if (package['id'] == tourId) package['isFavorite'] = false;
+          }
+          for (var package in wildlifePackages) {
+            if (package['id'] == tourId) package['isFavorite'] = false;
+          }
+          // Update Firestore packages
+          for (var package in _firestorePackages) {
+            if (package['id'] == tourId) package['isFavorite'] = false;
           }
         });
       } else {
         await _userProfileRepository.addToFavorites(tourId);
         setState(() {
           _favoriteTourIds.add(tourId);
-          for (var package in _allPackages) {
-            if (package['id'] == tourId) {
-              package['isFavorite'] = true;
-            }
+          // Update static packages
+          for (var package in countrysidePackages) {
+            if (package['id'] == tourId) package['isFavorite'] = true;
+          }
+          for (var package in beachPackages) {
+            if (package['id'] == tourId) package['isFavorite'] = true;
+          }
+          for (var package in cityPackages) {
+            if (package['id'] == tourId) package['isFavorite'] = true;
+          }
+          for (var package in wildlifePackages) {
+            if (package['id'] == tourId) package['isFavorite'] = true;
+          }
+          // Update Firestore packages
+          for (var package in _firestorePackages) {
+            if (package['id'] == tourId) package['isFavorite'] = true;
           }
         });
       }
@@ -142,6 +184,35 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
       });
     } catch (e) {
       // ignore errors silently for now
+    }
+  }
+
+  Future<void> _loadFirestorePackages() async {
+    try {
+      final snap = await FirebaseFirestore.instance
+          .collection('guide_packages')
+          .where('isActive', isEqualTo: true)
+          .get();
+
+      final packages = <Map<String, dynamic>>[];
+      for (final doc in snap.docs) {
+        final data = Map<String, dynamic>.from(doc.data());
+        data['id'] = doc.id;
+        data['isFavorite'] = _favoriteTourIds.contains(doc.id);
+        // Convert Firestore package format to match the app's format
+        data['image'] = data['imageUrl'] ?? '';
+        data['rating'] = '4.5'; // Default rating for guide packages
+        packages.add(data);
+      }
+
+      setState(() {
+        _firestorePackages = packages;
+        _isLoadingFirestorePackages = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingFirestorePackages = false;
+      });
     }
   }
 
@@ -252,6 +323,7 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
       ...beachPackages,
       ...cityPackages,
       ...wildlifePackages,
+      ..._firestorePackages,
     ];
   }
 
@@ -720,6 +792,46 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
       ),
       const SizedBox(height: 24),
 
+      // Guide Packages from Firestore
+      if (_firestorePackages.isNotEmpty) ...[
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                "Guide Packages",
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              if (_isLoadingFirestorePackages)
+                const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          height: 260,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            itemCount: _firestorePackages.length,
+            itemBuilder: (context, index) {
+              final package = _firestorePackages[index];
+              return _buildGuidePackageCard(package);
+            },
+          ),
+        ),
+        const SizedBox(height: 24),
+      ],
+
       // Country Side
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -953,6 +1065,148 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildGuidePackageCard(Map<String, dynamic> package) {
+    final imageUrl = package['image'] as String? ?? '';
+    final title = package['title'] as String? ?? 'Tour Package';
+    final price = package['price'] as String? ?? 'Contact for price';
+    final duration = package['duration'] as String? ?? '';
+    final location = package['location'] as String? ?? '';
+    final isFavorite = package['isFavorite'] as bool? ?? false;
+    final packageId = package['id'] as String? ?? '';
+
+    return Container(
+      width: 200,
+      margin: const EdgeInsets.only(right: 16),
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: InkWell(
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => TourPackageDetailScreen(
+                  title: title,
+                  description: package['description'] as String? ?? '',
+                  duration: duration,
+                  route: location,
+                  budgetUsd: price,
+                  budgetLkr: '',
+                  images: imageUrl.isNotEmpty ? [imageUrl] : [],
+                ),
+              ),
+            );
+          },
+          borderRadius: BorderRadius.circular(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Image
+              Container(
+                height: 120,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(16),
+                  ),
+                ),
+                child: imageUrl.isNotEmpty
+                    ? ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(16),
+                        ),
+                        child: Image.network(
+                          imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Icon(
+                            Icons.landscape,
+                            size: 40,
+                            color: Colors.grey[400],
+                          ),
+                        ),
+                      )
+                    : Icon(Icons.landscape, size: 40, color: Colors.grey[400]),
+              ),
+              // Content
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            title,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E4D3C),
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () => _toggleFavorite(packageId),
+                          child: Icon(
+                            isFavorite ? Icons.favorite : Icons.favorite_border,
+                            color: isFavorite ? Colors.red : Colors.grey,
+                            size: 20,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    if (duration.isNotEmpty)
+                      Text(
+                        duration,
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      ),
+                    const SizedBox(height: 4),
+                    Text(
+                      price,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF00A008),
+                      ),
+                    ),
+                    if (location.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.location_on,
+                            size: 12,
+                            color: Colors.grey[600],
+                          ),
+                          const SizedBox(width: 2),
+                          Expanded(
+                            child: Text(
+                              location,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey[600],
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
