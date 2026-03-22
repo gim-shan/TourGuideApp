@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:hidmo_app/core/widgets/custom_app_bar.dart';
+import 'package:hidmo_app/features/profile/data/repositories/user_profile_repository.dart';
+import 'package:hidmo_app/features/profile/presentation/screens/user_profile_screen.dart';
 import 'package:hidmo_app/features/auth/presentation/screens/get_started_screen.dart';
-import 'package:hidmo_app/features/auth/presentation/screens/dashboard_screens/dashboard.dart';
+import 'package:hidmo_app/features/auth/presentation/screens/dashboard_screens/dashboard.dart'
+    as dashboard;
 import 'package:hidmo_app/features/tourist/tour_packages/tour_package_detail_screen.dart';
 
 import 'package:hidmo_app/features/tourist/tour_packages/tour_customizer_screen.dart';
@@ -26,6 +30,10 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
   static const Color _navIdle = Color(0xff0e5a3c);
 
   late int _selectedNavIndex;
+
+  // Favorites management
+  final UserProfileRepository _userProfileRepository = UserProfileRepository();
+  final Set<String> _favoriteTourIds = {};
 
   // Bookings for current user (raw documents from Firestore)
   final List<Map<String, dynamic>> _userBookings = [];
@@ -58,6 +66,60 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
     super.initState();
     _selectedNavIndex = widget.initialIndex.clamp(0, 3);
     _loadUserBookings();
+    _loadFavorites();
+  }
+
+  Future<void> _loadFavorites() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      final favoriteTours = await _userProfileRepository.getFavoriteTours();
+      setState(() {
+        _favoriteTourIds.clear();
+        _favoriteTourIds.addAll(favoriteTours);
+
+        // Update package isFavorite flags
+        for (var package in _allPackages) {
+          package['isFavorite'] = _favoriteTourIds.contains(package['id']);
+        }
+      });
+    } catch (e) {
+      // Handle error silently
+    }
+  }
+
+  Future<void> _toggleFavorite(String tourId) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      final isFavorited = _favoriteTourIds.contains(tourId);
+
+      if (isFavorited) {
+        await _userProfileRepository.removeFromFavorites(tourId);
+        setState(() {
+          _favoriteTourIds.remove(tourId);
+          for (var package in _allPackages) {
+            if (package['id'] == tourId) {
+              package['isFavorite'] = false;
+            }
+          }
+        });
+      } else {
+        await _userProfileRepository.addToFavorites(tourId);
+        setState(() {
+          _favoriteTourIds.add(tourId);
+          for (var package in _allPackages) {
+            if (package['id'] == tourId) {
+              package['isFavorite'] = true;
+            }
+          }
+        });
+      }
+    } catch (e) {
+      // Handle error if needed
+    }
   }
 
   Future<void> _loadUserBookings() async {
@@ -86,6 +148,7 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
   // DAta List
   final List<Map<String, dynamic>> countrysidePackages = [
     {
+      "id": "tour_001",
       "image": "assets/images/Rectangle128.png",
       "title": "The Emerald Wellness &\nTea Retreat",
       "price": "\$400-\$550",
@@ -93,6 +156,7 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
       "isFavorite": false,
     },
     {
+      "id": "tour_002",
       "image": "assets/images/Rectangle130.png",
       "title": "The Heritage & Highline\nJourney",
       "price": "\$750-\$900",
@@ -100,6 +164,7 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
       "isFavorite": false,
     },
     {
+      "id": "tour_003",
       "image": "assets/images/Rectangle135.png",
       "title": "The Peaks & Pines Adventure\n(Ella Experience)",
       "price": "\$450-\$600",
@@ -110,6 +175,7 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
 
   final List<Map<String, dynamic>> beachPackages = [
     {
+      "id": "tour_004",
       "image": "assets/images/Rectangle129.png",
       "title": "The Azure Horizon: Private\nSouthern Charter",
       "price": "\$1200-\$1800",
@@ -117,6 +183,7 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
       "isFavorite": false,
     },
     {
+      "id": "tour_005",
       "image": "assets/images/Rectangle131.png",
       "title": "The Wild & Coastal Escape",
       "price": "\$650-\$800",
@@ -127,6 +194,7 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
 
   final List<Map<String, dynamic>> cityPackages = [
     {
+      "id": "tour_006",
       "image": "assets/images/Rectangle133.png",
       "title": "The Lost Kingdoms & Ancient\nMonasteries (Hidden Heritage)",
       "price": "\$550-\$700",
@@ -134,6 +202,7 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
       "isFavorite": false,
     },
     {
+      "id": "tour_007",
       "image": "assets/images/Rectangle136.png",
       "title": "Festival & Folklore: The Esala\nPerahera Special",
       "price": "\$900-\$1200",
@@ -141,6 +210,7 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
       "isFavorite": false,
     },
     {
+      "id": "tour_008",
       "image": "assets/images/Rectangle134.png",
       "title": "The Northern Soul: Tamil\nHeritage & Jaffna Islands",
       "price": "\$650-\$850",
@@ -148,6 +218,7 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
       "isFavorite": false,
     },
     {
+      "id": "tour_009",
       "image": "assets/images/Rectangle137.png",
       "title": "The Colonial Coast: Galle\nFort & Beyond",
       "price": "\$350-\$500",
@@ -158,6 +229,7 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
 
   final List<Map<String, dynamic>> wildlifePackages = [
     {
+      "id": "tour_010",
       "image": "assets/images/Rectangle132.png",
       "title": "The Masks and Melodies",
       "price": "\$150-\$250",
@@ -165,6 +237,7 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
       "isFavorite": false,
     },
     {
+      "id": "tour_011",
       "image": "assets/images/Rectangle138.png",
       "title": "The Leopard's Kingdom: Yala\nSafari Expedition",
       "price": "\$500-\$750",
@@ -331,7 +404,8 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
                   });
                   Navigator.of(context).pushReplacement(
                     MaterialPageRoute(
-                      builder: (_) => DashboardScreen(initialIndex: index),
+                      builder: (_) =>
+                          dashboard.DashboardScreen(initialIndex: index),
                     ),
                   );
                 },
@@ -358,37 +432,17 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
             )
           : null,
 
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-          onPressed: () {
-            if (isSearching) {
-              setState(() {
-                _searchController.clear();
-                _searchQuery = "";
-              });
-            } else {
-              Navigator.pop(context);
-            }
-          },
+      appBar: CustomAppBar(
+        title: 'Tour Packages',
+        showBackButton: true,
+        onBackPressed: () => Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const dashboard.DashboardScreen()),
         ),
-        actions: [
+        onProfileTapped: () => Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const UserProfileScreen())),
+        additionalActions: [
           PopupMenuButton<String>(
-            icon: Container(
-              margin: const EdgeInsets.only(right: 20),
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.grey.shade300, width: 1),
-                image: const DecorationImage(
-                  image: AssetImage("assets/images/guide.jpg"),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
             onSelected: (value) {
               if (value == 'logout') {
                 _logout();
@@ -472,9 +526,7 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
             isFavorite: item["isFavorite"],
             isBooked: _isPackageBooked(item["title"] as String?),
             onFavoriteTap: () {
-              setState(() {
-                item["isFavorite"] = !item["isFavorite"];
-              });
+              _toggleFavorite(item["id"] as String);
             },
             onSeeMore: _handleSeeMoreAction,
           ),
@@ -572,15 +624,6 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
       );
     }
     return list;
-  }
-
-  Map<String, dynamic>? _findPackageByTitle(String title) {
-    for (final pkg in _allPackages) {
-      final pkgTitle = (pkg['title'] as String?)?.toLowerCase();
-      if (pkgTitle == null) continue;
-      if (pkgTitle == title.toLowerCase()) return pkg;
-    }
-    return null;
   }
 
   List<Widget> _buildHomeContent() {
@@ -721,9 +764,7 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
                 isFavorite: item["isFavorite"],
                 isBooked: _isPackageBooked(item["title"] as String?),
                 onFavoriteTap: () {
-                  setState(() {
-                    item["isFavorite"] = !item["isFavorite"];
-                  });
+                  _toggleFavorite(item["id"] as String);
                 },
                 onSeeMore: isEmerald
                     ? _openEmeraldWellnessDetail
@@ -776,9 +817,7 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
                 isFavorite: item["isFavorite"],
                 isBooked: _isPackageBooked(item["title"] as String?),
                 onFavoriteTap: () {
-                  setState(() {
-                    item["isFavorite"] = !item["isFavorite"];
-                  });
+                  _toggleFavorite(item["id"] as String);
                 },
                 onSeeMore: _handleSeeMoreAction,
               ),
@@ -824,9 +863,7 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
                 isFavorite: item["isFavorite"],
                 isBooked: _isPackageBooked(item["title"] as String?),
                 onFavoriteTap: () {
-                  setState(() {
-                    item["isFavorite"] = !item["isFavorite"];
-                  });
+                  _toggleFavorite(item["id"] as String);
                 },
                 onSeeMore: _handleSeeMoreAction,
               ),
@@ -872,9 +909,7 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
                 isFavorite: item["isFavorite"],
                 isBooked: _isPackageBooked(item["title"] as String?),
                 onFavoriteTap: () {
-                  setState(() {
-                    item["isFavorite"] = !item["isFavorite"];
-                  });
+                  _toggleFavorite(item["id"] as String);
                 },
                 onSeeMore: _handleSeeMoreAction,
               ),

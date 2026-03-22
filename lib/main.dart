@@ -3,7 +3,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:hidmo_app/features/auth/presentation/screens/onboarding_screen.dart';
 import 'package:hidmo_app/features/auth/presentation/screens/auth_service.dart';
-import 'package:hidmo_app/features/auth/presentation/screens/get_started_screen.dart';
 import 'package:hidmo_app/features/live_events/data/utils/event_database_initializer.dart';
 
 //import 'features/auth/presentation/screens/tourist_signin_screen.dart';

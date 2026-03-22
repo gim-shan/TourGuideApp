@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hidmo_app/core/widgets/custom_app_bar.dart';
+import 'package:hidmo_app/features/profile/presentation/screens/user_profile_screen.dart';
 
 class ExploreHotelsScreen extends StatelessWidget {
   const ExploreHotelsScreen({super.key});
@@ -41,11 +43,12 @@ class ExploreHotelsScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text('Explore Hotels'),
-        backgroundColor: Colors.white,
-        foregroundColor: _textDark,
-        elevation: 0,
+      appBar: CustomAppBar(
+        title: 'Explore Hotels',
+        showBackButton: false,
+        onProfileTapped: () => Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const UserProfileScreen())),
       ),
       body: ListView.separated(
         padding: const EdgeInsets.all(16),

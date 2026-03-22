@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:image_picker/image_picker.dart';
 
-import 'get_started_screen.dart';
+import 'choose_role_screen.dart';
 import 'auth_service.dart';
 
 class GSignUpScreen extends StatefulWidget {
@@ -215,7 +215,7 @@ class _GSignUpScreenState extends State<GSignUpScreen> {
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
           onPressed: () {
             Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (_) => const GetStartedScreen()),
+              MaterialPageRoute(builder: (_) => const ChooseRoleScreen()),
             );
           },
         ),

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hidmo_app/core/widgets/custom_app_bar.dart';
+import 'package:hidmo_app/features/profile/presentation/screens/user_profile_screen.dart';
 import 'package:hidmo_app/features/auth/presentation/screens/dashboard_screens/dashboard.dart';
 import 'package:hidmo_app/features/guides/presentation/screens/guides_screen.dart';
 import 'package:hidmo_app/features/tourist/hotels/explore_hotels_screen.dart';
@@ -274,15 +276,12 @@ class _TourCustomizerScreenState extends State<TourCustomizerScreen> {
           ],
         ),
       ),
-      appBar: AppBar(
-        title: const Text(
-          'Customize Your Adventure',
-          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
-        ),
-        backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF1E4D3C),
-        elevation: 0,
-        centerTitle: true,
+      appBar: CustomAppBar(
+        title: 'Customize Your Adventure',
+        showBackButton: true,
+        onProfileTapped: () => Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const UserProfileScreen())),
       ),
       body: Column(
         children: [

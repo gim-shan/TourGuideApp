@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'tourist_signin_screen.dart';
 import 'guide_signin_screen.dart';
-import 'get_started_screen.dart';
+import 'onboarding_screen.dart';
 
 class ChooseRoleScreen extends StatelessWidget {
   const ChooseRoleScreen({super.key});
@@ -10,12 +10,14 @@ class ChooseRoleScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
 
-    return WillPopScope(
-      onWillPop: () async {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const GetStartedScreen()),
-        );
-        return false;
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+          );
+        }
       },
       child: Scaffold(
         body: Stack(

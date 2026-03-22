@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hidmo_app/core/widgets/custom_app_bar.dart';
+import 'package:hidmo_app/features/profile/presentation/screens/user_profile_screen.dart';
 import '../../data/models/event_model.dart';
 import '../../data/repositories/event_repository.dart';
 import '../widgets/event_card.dart';
@@ -27,22 +29,12 @@ class _LiveEventsScreenState extends State<LiveEventsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 241, 238, 238),
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.white,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xff1b3a20)),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: const Text(
-          'Live Events',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Color(0xff1b3a20),
-          ),
-        ),
-        centerTitle: false,
+      appBar: CustomAppBar(
+        title: 'Live Events',
+        showBackButton: true,
+        onProfileTapped: () => Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const UserProfileScreen())),
       ),
       body: Column(
         children: [

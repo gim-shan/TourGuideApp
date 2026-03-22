@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:hidmo_app/core/widgets/profile_avatar.dart';
+import 'package:hidmo_app/core/widgets/custom_app_bar.dart';
+import 'package:hidmo_app/features/profile/presentation/screens/user_profile_screen.dart';
 
 class GuideProfileScreen extends StatelessWidget {
   final Map<String, Object> info;
@@ -18,9 +21,13 @@ class GuideProfileScreen extends StatelessWidget {
         [];
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(
+        title: name,
         backgroundColor: const Color(0xff1b9c4d),
-        title: Text(name),
+        titleColor: Colors.white,
+        onProfileTapped: () => Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const UserProfileScreen())),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -31,20 +38,11 @@ class GuideProfileScreen extends StatelessWidget {
               Center(
                 child: Column(
                   children: [
-                    Container(
-                      height: 110,
-                      width: 110,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: const Color(0xff1b9c4d),
-                          width: 4,
-                        ),
-                      ),
-                      child: const CircleAvatar(
-                        backgroundColor: Colors.grey,
-                        radius: 50,
-                      ),
+                    ProfileAvatar(
+                      userName: name,
+                      size: 110,
+                      showBorder: true,
+                      borderWidth: 4,
                     ),
                     const SizedBox(height: 12),
                     Row(

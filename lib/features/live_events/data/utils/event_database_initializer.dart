@@ -1,4 +1,3 @@
-import '../models/event_model.dart';
 import '../repositories/event_repository.dart';
 
 class EventDatabaseInitializer {

@@ -9,6 +9,7 @@ import 'package:hidmo_app/features/chat/ai_assistant_screen.dart';
 import 'package:hidmo_app/features/guides/presentation/screens/guides_screen.dart';
 import 'package:hidmo_app/features/translator/translator_screen.dart';
 import 'package:hidmo_app/features/live_events/presentation/screens/live_events_screen.dart';
+import 'package:hidmo_app/features/profile/presentation/screens/user_profile_screen.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -164,26 +165,54 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          "Hello, ${_userName == null || _userName!.isEmpty ? 'Traveller' : _userName!}!",
-                          style: const TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            color: Color.fromARGB(255, 19, 53, 20),
+                        Expanded(
+                          child: Text(
+                            "Hello, ${_userName == null || _userName!.isEmpty ? 'Traveller' : _userName!}!",
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Color.fromARGB(255, 19, 53, 20),
+                            ),
+                            softWrap: true,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                           ),
                         ),
-                        Container(
-                          padding: const EdgeInsets.all(2),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.black, width: 2),
+                        GestureDetector(
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const UserProfileScreen(),
+                            ),
                           ),
-                          child: ClipOval(
-                            child: Image.asset(
-                              "assets/icons/User.png",
-                              width: 38,
-                              height: 38,
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: const LinearGradient(
+                                colors: [Color(0xff1b9c4d), Color(0xff0e5a3c)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Center(
+                              child: Text(
+                                (_userName != null && _userName!.isNotEmpty
+                                        ? _userName![0]
+                                        : 'U')
+                                    .toUpperCase(),
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
                             ),
                           ),
                         ),

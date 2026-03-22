@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:hidmo_app/core/widgets/custom_app_bar.dart';
+import 'package:hidmo_app/features/profile/presentation/screens/user_profile_screen.dart';
 
 class TranslatorScreen extends StatefulWidget {
   const TranslatorScreen({super.key});
@@ -155,11 +157,14 @@ class _TranslatorScreenState extends State<TranslatorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Translator'),
+      appBar: CustomAppBar(
+        title: 'Translator',
+        showBackButton: false,
         backgroundColor: const Color(0xff1b9c4d),
-        foregroundColor: Colors.white,
-        elevation: 0,
+        titleColor: Colors.white,
+        onProfileTapped: () => Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const UserProfileScreen())),
       ),
       body: Container(
         decoration: const BoxDecoration(

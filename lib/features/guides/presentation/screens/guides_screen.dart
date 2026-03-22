@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hidmo_app/features/guides/presentation/screens/guide_profile_screen.dart';
+import 'package:hidmo_app/core/widgets/profile_avatar.dart';
 
 class GuidesScreen extends StatefulWidget {
   const GuidesScreen({super.key});
@@ -361,17 +362,11 @@ class _GuidesScreenState extends State<GuidesScreen> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  height: 64,
-                  width: 64,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: _green, width: 4),
-                  ),
-                  child: const CircleAvatar(
-                    backgroundColor: Colors.grey,
-                    radius: 28,
-                  ),
+                ProfileAvatar(
+                  userName: name,
+                  size: 64,
+                  showBorder: true,
+                  borderWidth: 4,
                 ),
                 const Spacer(),
                 Column(

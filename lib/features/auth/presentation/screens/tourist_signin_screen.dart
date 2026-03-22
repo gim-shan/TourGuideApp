@@ -6,7 +6,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 import 'dashboard_screens/dashboard.dart';
 import 'tourist_signup_screen.dart';
-import 'get_started_screen.dart';
+import 'choose_role_screen.dart';
 import 'auth_service.dart';
 
 class TSignInScreen extends StatefulWidget {
@@ -92,14 +92,26 @@ class _TSignInScreenState extends State<TSignInScreen> {
   Future<void> _signInWithGoogle() async {
     setState(() => _isLoading = true);
     try {
-      final googleUser = await GoogleSignIn(
-        scopes: const <String>['email'],
-      ).signIn();
+      // Initialize GoogleSignIn with proper configuration
+      final googleSignIn = GoogleSignIn(
+        scopes: const <String>['email', 'profile'],
+        forceCodeForRefreshToken: true,
+      );
+
+      final googleUser = await googleSignIn.signIn();
       if (googleUser == null) {
+        _errorMessage("Google sign-in was cancelled.");
+        setState(() => _isLoading = false);
         return;
       }
 
       final googleAuth = await googleUser.authentication;
+
+      // Check if tokens are available
+      if (googleAuth.accessToken == null) {
+        throw Exception('Failed to get access token from Google');
+      }
+
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
@@ -138,8 +150,8 @@ class _TSignInScreenState extends State<TSignInScreen> {
       );
     } on FirebaseAuthException catch (e) {
       _errorMessage(_mapAuthError(e));
-    } catch (_) {
-      _errorMessage("Google sign-in failed. Please try again.");
+    } catch (e) {
+      _errorMessage("Google sign-in failed: ${e.toString()}");
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -185,7 +197,7 @@ class _TSignInScreenState extends State<TSignInScreen> {
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
           onPressed: () {
             Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (_) => const GetStartedScreen()),
+              MaterialPageRoute(builder: (_) => const ChooseRoleScreen()),
             );
           },
         ),
