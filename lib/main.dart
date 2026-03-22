@@ -4,6 +4,7 @@ import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:hidmo_app/features/auth/presentation/screens/onboarding_screen.dart';
 import 'package:hidmo_app/features/auth/presentation/screens/auth_service.dart';
 import 'package:hidmo_app/features/auth/presentation/screens/get_started_screen.dart';
+import 'package:hidmo_app/features/live_events/data/utils/event_database_initializer.dart';
 
 //import 'features/auth/presentation/screens/tourist_signin_screen.dart';
 import 'features/auth/presentation/screens/dashboard_screens/dashboard.dart';
@@ -17,6 +18,10 @@ void main() async {
       'pk_test_51TCDnp7lC3WAYGa8JemAIbhkFSMj3jf6QvG2G90LkSqeozeRFIDFtLFEjQ9MiBHQEULCo0t7cHrvnrqlVRpvI5jC00VXzlrmHH';
 
   await Firebase.initializeApp(); // Initialize Firebase
+
+  // Initialize Live Events Database
+  await EventDatabaseInitializer.initializeDatabase();
+
   runApp(const HiddenMonentsApp());
 }
 

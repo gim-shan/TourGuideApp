@@ -11,14 +11,14 @@ class ArPreviewListScreen extends StatelessWidget {
     final destinations = [
       {
         'name': 'Sigiriya',
-        'image': 'assets/images/ninearch.png',
+        'image': 'assets/images/sigiriya.jpg',
         'model': 'https://modelviewer.dev/shared-assets/models/Astronaut.glb',
         'sketchfab':
             'https://sketchfab.com/models/8c85ec4fcbe74fbaae722d8cbb1241c5',
       },
       {
         'name': 'Galle Fort',
-        'image': 'assets/images/mirissa.jpg',
+        'image': 'assets/images/gallefort.jpg',
         'model':
             'https://modelviewer.dev/shared-assets/models/FlightHelmet.glb',
         'panorama':
@@ -26,7 +26,7 @@ class ArPreviewListScreen extends StatelessWidget {
       },
       {
         'name': 'Kandy Temple',
-        'image': 'assets/images/waterfall.jpg',
+        'image': 'assets/images/kandy.jpg',
         'model':
             'https://modelviewer.dev/shared-assets/models/RobotExpressive.glb',
         'panorama':
