@@ -3,6 +3,7 @@ import 'package:hidmo_app/core/widgets/custom_app_bar.dart';
 import 'package:hidmo_app/features/profile/presentation/screens/user_profile_screen.dart';
 import 'package:hidmo_app/features/auth/presentation/screens/dashboard_screens/dashboard.dart';
 import 'package:hidmo_app/features/guides/presentation/screens/guides_screen.dart';
+import 'package:hidmo_app/features/guide/data/models/guide_profile.dart';
 import 'package:hidmo_app/features/tourist/hotels/explore_hotels_screen.dart';
 import 'package:hidmo_app/features/tourist/payment/payment_screen.dart';
 
@@ -91,7 +92,7 @@ class _TourCustomizerScreenState extends State<TourCustomizerScreen> {
       'name': 'Galle Fort',
       'price': 8,
       'desc': 'Colonial-era fortifications',
-      'image': 'assets/images/galle.jpg',
+      'image': 'assets/images/gallefort.jpg',
     },
     {
       'name': 'Nuwara Eliya',
@@ -109,19 +110,19 @@ class _TourCustomizerScreenState extends State<TourCustomizerScreen> {
       'name': 'Yala Safari',
       'price': 25,
       'desc': 'Leopard & Wildlife Park',
-      'image': 'assets/images/image.png',
+      'image': 'assets/images/yala.jpg',
     },
     {
       'name': 'Polonnaruwa',
       'price': 15,
       'desc': 'Ancient Kingdom Ruins',
-      'image': 'assets/images/image16.png',
+      'image': 'assets/images/polonnaruwa.jpg',
     },
     {
       'name': 'Anuradhapura',
       'price': 12,
       'desc': 'Sacred Ancient City',
-      'image': 'assets/images/image17.png',
+      'image': 'assets/images/anuradhapura.jpg',
     },
     {
       'name': 'Mirissa',
@@ -139,13 +140,13 @@ class _TourCustomizerScreenState extends State<TourCustomizerScreen> {
       'name': 'Dambulla',
       'price': 10,
       'desc': 'Cave Temple Complex',
-      'image': 'assets/images/image.png',
+      'image': 'assets/images/dambulla.jpg',
     },
     {
       'name': 'Horton Plains',
       'price': 15,
       'desc': 'World\'s End & Baker\'s Falls',
-      'image': 'assets/images/hortonplains.png',
+      'image': 'assets/images/horton.jpg',
     },
   ];
 
@@ -445,9 +446,21 @@ class _TourCustomizerScreenState extends State<TourCustomizerScreen> {
                       final result = await Navigator.of(context).push(
                         MaterialPageRoute(builder: (_) => const GuidesScreen()),
                       );
-                      if (result != null && result is Map) {
+                      if (result != null && result is GuideProfile) {
                         setState(() {
-                          selectedGuides = [Map<String, dynamic>.from(result)];
+                          // Convert GuideProfile to a Map for display
+                          selectedGuides = [
+                            {
+                              'name': result.name,
+                              'price':
+                                  50, // Default price - can be updated if GuideProfile has price field
+                              'desc': result.specializations.isNotEmpty
+                                  ? result.specializations.join(', ')
+                                  : 'Local guide',
+                              'guide':
+                                  result, // Keep the full GuideProfile for reference
+                            },
+                          ];
                         });
                       }
                     },
@@ -806,11 +819,24 @@ class _TourCustomizerScreenState extends State<TourCustomizerScreen> {
                 ),
                 child: Stack(
                   children: [
-                    Center(
-                      child: Icon(
-                        Icons.image_rounded,
-                        size: 40,
-                        color: Colors.grey[400],
+                    ClipRRect(
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(14),
+                      ),
+                      child: Image.asset(
+                        item['image'] as String,
+                        width: double.infinity,
+                        height: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Center(
+                            child: Icon(
+                              Icons.image_rounded,
+                              size: 40,
+                              color: Colors.grey[400],
+                            ),
+                          );
+                        },
                       ),
                     ),
                     if (isSelected)
@@ -1122,6 +1148,13 @@ class _TourCustomizerScreenState extends State<TourCustomizerScreen> {
                           'transport': transportPriceSelected,
                         };
 
+                        // Get guide info if selected
+                        final selectedGuide = selectedGuides.isNotEmpty
+                            ? selectedGuides.first
+                            : null;
+                        final guideId = selectedGuide?['guide']?.uid;
+                        final guideName = selectedGuide?['name'];
+
                         Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => PaymentScreen(
@@ -1130,6 +1163,8 @@ class _TourCustomizerScreenState extends State<TourCustomizerScreen> {
                               numberOfPeople: people,
                               bookingDate: selectedDate!,
                               packageDetails: bookingDetails,
+                              guideId: guideId,
+                              guideName: guideName,
                             ),
                           ),
                         );

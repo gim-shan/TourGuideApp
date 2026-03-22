@@ -4,6 +4,9 @@ import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:hidmo_app/features/auth/presentation/screens/onboarding_screen.dart';
 import 'package:hidmo_app/features/auth/presentation/screens/auth_service.dart';
 import 'package:hidmo_app/features/live_events/data/utils/event_database_initializer.dart';
+import 'package:hidmo_app/features/tourist/hotels/data/utils/hotel_database_initializer.dart';
+import 'package:hidmo_app/features/tourist/tour_packages/data/utils/tour_package_database_initializer.dart';
+import 'package:hidmo_app/features/guide/data/utils/guide_database_initializer.dart';
 import 'package:hidmo_app/core/services/push_notification_service.dart';
 
 //import 'features/auth/presentation/screens/tourist_signin_screen.dart';
@@ -25,6 +28,15 @@ void main() async {
 
   // Initialize Live Events Database
   await EventDatabaseInitializer.initializeDatabase();
+
+  // Initialize Hotels Database
+  await HotelDatabaseInitializer.initializeDatabase();
+
+  // Initialize Tour Packages Database
+  await TourPackageDatabaseInitializer.initializeDatabase();
+
+  // Initialize Guides Database
+  await GuideDatabaseInitializer.initializeDatabase();
 
   runApp(const HiddenMonentsApp());
 }

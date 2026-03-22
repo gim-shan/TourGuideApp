@@ -43,14 +43,32 @@ class EventCard extends StatelessWidget {
               color: const Color(0xff1b9c4d).withOpacity(0.1),
               child: Stack(
                 children: [
-                  // Placeholder or actual image
-                  Center(
-                    child: Icon(
-                      Icons.event,
-                      size: 80,
-                      color: const Color(0xff1b9c4d).withOpacity(0.3),
+                  // Event image
+                  if (event.imageUrl.isNotEmpty)
+                    Image.asset(
+                      event.imageUrl,
+                      height: 200,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        // Fallback to icon if image fails to load
+                        return Center(
+                          child: Icon(
+                            Icons.event,
+                            size: 80,
+                            color: const Color(0xff1b9c4d).withOpacity(0.3),
+                          ),
+                        );
+                      },
+                    )
+                  else
+                    Center(
+                      child: Icon(
+                        Icons.event,
+                        size: 80,
+                        color: const Color(0xff1b9c4d).withOpacity(0.3),
+                      ),
                     ),
-                  ),
                   // Badge for upcoming
                   Positioned(
                     top: 12,

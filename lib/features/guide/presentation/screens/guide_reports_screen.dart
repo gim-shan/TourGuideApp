@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+import 'package:hidmo_app/features/guide/data/services/guide_report_service.dart';
+import 'package:hidmo_app/features/guide/data/models/guide_report.dart';
 
 class GuideReportsScreen extends StatefulWidget {
   const GuideReportsScreen({super.key});
@@ -13,6 +16,7 @@ class GuideReportsScreen extends StatefulWidget {
 class _GuideReportsScreenState extends State<GuideReportsScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GuideReportService _reportService = GuideReportService();
 
   bool _isLoading = true;
   int _totalBookings = 0;
@@ -23,6 +27,7 @@ class _GuideReportsScreenState extends State<GuideReportsScreen> {
   double _totalEarnings = 0.0;
   double _monthlyEarnings = 0.0;
   List<Map<String, dynamic>> _recentBookings = [];
+  List<GuideReport> _savedReports = [];
 
   String _selectedPeriod = 'All Time';
 
@@ -144,6 +149,22 @@ class _GuideReportsScreenState extends State<GuideReportsScreen> {
         _recentBookings = allBookings.take(10).toList();
         _isLoading = false;
       });
+
+      // Save report to Firestore
+      try {
+        await _reportService.generateReport(periodType: 'all');
+
+        // Load saved reports
+        final savedReports = await _reportService.getReports();
+        if (mounted) {
+          setState(() {
+            _savedReports = savedReports;
+          });
+        }
+      } catch (e) {
+        // Continue even if saving fails - report is still displayed
+        debugPrint('Failed to save report to Firestore: $e');
+      }
     } catch (e) {
       setState(() => _isLoading = false);
     }

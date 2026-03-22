@@ -1,12 +1,8 @@
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:image_picker/image_picker.dart';
 
 import 'choose_role_screen.dart';
 import 'auth_service.dart';
@@ -26,13 +22,10 @@ class _GSignUpScreenState extends State<GSignUpScreen> {
 
   final _auth = FirebaseAuth.instance;
   final _firestore = FirebaseFirestore.instance;
-  final _storage = FirebaseStorage.instance;
-  final _picker = ImagePicker();
   final _formKey = GlobalKey<FormState>();
 
   bool _isLoading = false;
   bool _showPass = false;
-  XFile? _licenseFile;
 
   final Color primaryColor = const Color(0xFF1E4D3C);
 
@@ -43,36 +36,6 @@ class _GSignUpScreenState extends State<GSignUpScreen> {
     _fullNameCtrl.dispose();
     _licenseCtrl.dispose();
     super.dispose();
-  }
-
-  Future<void> _pickLicenseFile() async {
-    try {
-      final picked = await _picker.pickImage(source: ImageSource.gallery);
-      if (picked != null) {
-        setState(() => _licenseFile = picked);
-      }
-    } catch (_) {
-      _showError('Failed to pick image. Please try again.');
-    }
-  }
-
-  Future<String?> _uploadLicenseProof(String uid) async {
-    if (_licenseFile == null) return null;
-    try {
-      final file = File(_licenseFile!.path);
-      final ref = _storage
-          .ref()
-          .child('guide_licenses')
-          .child('$uid-${DateTime.now().millisecondsSinceEpoch}.jpg');
-      final uploadTask = await ref.putFile(file);
-      final url = await uploadTask.ref.getDownloadURL();
-      return url;
-    } catch (_) {
-      _showError(
-        'Failed to upload license proof. You can continue without it.',
-      );
-      return null;
-    }
   }
 
   Future<void> _signUpWithEmail() async {
@@ -94,14 +57,11 @@ class _GSignUpScreenState extends State<GSignUpScreen> {
         );
       }
 
-      String? licenseUrl = await _uploadLicenseProof(user.uid);
-
       await _firestore.collection('users').doc(user.uid).set({
         'email': user.email,
         'role': 'guide',
         'fullName': _fullNameCtrl.text.trim(),
         'sltdaLicenseNumber': _licenseCtrl.text.trim(),
-        'licenseProofUrl': licenseUrl,
         'createdAt': FieldValue.serverTimestamp(),
         'provider': 'password',
         'verified': false,
@@ -339,36 +299,6 @@ class _GSignUpScreenState extends State<GSignUpScreen> {
                           }
                           return null;
                         },
-                      ),
-                      const SizedBox(height: 20),
-                      _label('License Proof (optional)'),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          ElevatedButton.icon(
-                            onPressed: _isLoading ? null : _pickLicenseFile,
-                            icon: const Icon(Icons.upload_file),
-                            label: const Text('Upload proof'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.grey[200],
-                              foregroundColor: Colors.black87,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              _licenseFile != null
-                                  ? _licenseFile!.name
-                                  : 'No file selected',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Colors.black54,
-                              ),
-                            ),
-                          ),
-                        ],
                       ),
                       const SizedBox(height: 24),
                       SizedBox(

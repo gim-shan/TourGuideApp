@@ -64,7 +64,7 @@ class EventModel {
         endDate: DateTime(2026, 12, 22),
         description:
             'Experience the magical sky lanterns festival with thousands of lanterns lighting up the night sky over Hikkaduwa beach.',
-        imageUrl: 'assets/images/sky_lanterns.jpg',
+        imageUrl: 'assets/images/skylanterns.jpg',
       ),
       EventModel(
         id: '2',
@@ -94,7 +94,7 @@ class EventModel {
         endDate: DateTime(2026, 8, 4),
         description:
             'The most famous festival in Sri Lanka featuring a grand procession with decorated elephants, dancers, and musicians.',
-        imageUrl: 'assets/images/esala.jpg',
+        imageUrl: 'assets/images/esela.jpg',
       ),
       EventModel(
         id: '5',

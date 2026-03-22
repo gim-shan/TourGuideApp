@@ -35,9 +35,8 @@ class ChooseRoleScreen extends StatelessWidget {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        Color(0xFF2E7D32),
-                        Color(0xFF1B5E20),
-                        Color(0xFF0A2E1A),
+                        Color(0xFF0D0D0D),
+                        Color(0xFF1A1A1A),
                         Color(0xFF000000),
                       ],
                     ),
@@ -53,8 +52,9 @@ class ChooseRoleScreen extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.4),
-                    Colors.black.withOpacity(0.6),
+                    Colors.black.withOpacity(0.5),
+                    Colors.black.withOpacity(0.7),
+                    Colors.black.withOpacity(0.85),
                   ],
                 ),
               ),
@@ -62,63 +62,111 @@ class ChooseRoleScreen extends StatelessWidget {
 
             // Content
             SafeArea(
-              child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    const SizedBox(height: 60),
+
+                    // App Logo/Icon
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.15),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.3),
+                          width: 2,
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.explore,
+                        size: 40,
+                        color: Colors.white,
+                      ),
+                    ),
+
+                    const SizedBox(height: 40),
+
                     // Title
                     const Text(
-                      'Choose Your Role',
+                      'Welcome to RouteX',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
-                        shadows: [
-                          Shadow(
-                            color: Colors.black45,
-                            offset: Offset(2, 2),
-                            blurRadius: 4,
+                        letterSpacing: 0.5,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // Subtitle
+                    Text(
+                      'Choose how you want to continue',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white.withOpacity(0.8),
+                        letterSpacing: 0.3,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+
+                    const SizedBox(height: 60),
+
+                    // Role cards
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // Tourist Card
+                          _buildRoleCard(
+                            context: context,
+                            icon: Icons.person_outline,
+                            title: 'Tourist',
+                            subtitle: 'Discover amazing places and experiences',
+                            gradientColors: [
+                              const Color(0xFF1E1E1E).withOpacity(0.85),
+                              const Color(0xFF2D2D2D).withOpacity(0.85),
+                            ],
+                            iconColor: Colors.white,
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const TSignInScreen(),
+                                ),
+                              );
+                            },
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          // Guide Card
+                          _buildRoleCard(
+                            context: context,
+                            icon: Icons.tour,
+                            title: 'Guide',
+                            subtitle: 'Share your knowledge and earn income',
+                            gradientColors: [
+                              const Color(0xFF1E1E1E).withOpacity(0.85),
+                              const Color(0xFF2D2D2D).withOpacity(0.85),
+                            ],
+                            iconColor: Colors.white,
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const GSignInScreen(),
+                                ),
+                              );
+                            },
                           ),
                         ],
                       ),
                     ),
+
                     const SizedBox(height: 40),
-
-                    // Role circles row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        // Tourist Circle -> go to tourist sign‑in
-                        _buildRoleCircle(
-                          context: context,
-                          imagePath: 'assets/images/user.jpg',
-                          label: 'Tourist',
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => const TSignInScreen(),
-                              ),
-                            );
-                          },
-                          size: size,
-                        ),
-
-                        // Guide Circle -> go to guide sign‑in
-                        _buildRoleCircle(
-                          context: context,
-                          imagePath: 'assets/images/guide.png',
-                          label: 'Guide',
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => const GSignInScreen(),
-                              ),
-                            );
-                          },
-                          size: size,
-                        ),
-                      ],
-                    ),
                   ],
                 ),
               ),
@@ -129,64 +177,85 @@ class ChooseRoleScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRoleCircle({
+  Widget _buildRoleCard({
     required BuildContext context,
-    required String imagePath,
-    required String label,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required List<Color> gradientColors,
+    required Color iconColor,
     required VoidCallback onTap,
-    required Size size,
   }) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Circular container with image
-        GestureDetector(
-          onTap: onTap,
-          child: Container(
-            width: size.width * 0.35,
-            height: size.width * 0.35,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withOpacity(0.9),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
-                  blurRadius: 15,
-                  offset: const Offset(0, 5),
-                ),
-              ],
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: gradientColors,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white.withOpacity(0.15), width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.4),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
             ),
-            child: ClipOval(
-              child: Image.asset(
-                imagePath,
-                fit: BoxFit.contain,
-                alignment: Alignment.center,
-                errorBuilder: (context, error, stackTrace) {
-                  // Fallback icon if image fails to load
-                  return const Icon(Icons.person, size: 80, color: Colors.grey);
-                },
+          ],
+        ),
+        child: Row(
+          children: [
+            // Icon container
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(icon, size: 32, color: iconColor),
+            ),
+
+            const SizedBox(width: 16),
+
+            // Text content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.white.withOpacity(0.7),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
+
+            // Arrow icon
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 18,
+              color: Colors.white.withOpacity(0.5),
+            ),
+          ],
         ),
-        const SizedBox(height: 16),
-        // Label
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-            shadows: [
-              Shadow(
-                color: Colors.black45,
-                offset: Offset(1, 1),
-                blurRadius: 2,
-              ),
-            ],
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

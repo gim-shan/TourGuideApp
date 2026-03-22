@@ -1,4 +1,8 @@
-require('dotenv').config(); // Load .env in local environment
+const path = require('path');
+// Try to load .env from multiple possible locations
+require('dotenv').config({ path: path.resolve(__dirname, '.env') });
+require('dotenv').config({ path: path.resolve(__dirname, '../functions/.env') });
+console.log('Loaded environment variables:', Object.keys(process.env).filter(k => !k.includes('SECRET')));
 const express = require('express');
 const fetch = require('node-fetch');
 const cors = require('cors');
@@ -10,6 +14,10 @@ const admin = require('firebase-admin');
 const stripeSecret = process.env.STRIPE_SECRET_KEY;
 if (!stripeSecret) {
   console.error('ERROR: STRIPE_SECRET_KEY not set!');
+  console.error('Available env vars:', Object.keys(process.env));
+} else {
+  console.log('✓ STRIPE_SECRET_KEY loaded');
+  console.log('  Key starts with:', stripeSecret.substring(0, 15) + '...');
 }
 const stripe = require('stripe')(stripeSecret);
 
@@ -92,22 +100,23 @@ async function handleGroqGenerate(req, res) {
 // Create Payment Intent for Stripe
 async function handleCreatePaymentIntent(req, res) {
   try {
-    const { amount, currency = 'usd', customerId } = req.body;
+    const { amount, currency = 'usd' } = req.body;
+    console.log(`Payment request: amount=${amount}, currency=${currency}`);
 
     if (!amount) {
       return res.status(400).json({ error: 'Missing amount' });
     }
 
-    // Create payment intent with Stripe
+    // Create payment intent with Stripe (without customer - will be created during payment)
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amount,
       currency: currency,
-      customer: customerId,
       automatic_payment_methods: {
         enabled: true,
       },
     });
 
+    console.log(`PaymentIntent created: ${paymentIntent.id}`);
     res.json({
       clientSecret: paymentIntent.client_secret,
       paymentIntentId: paymentIntent.id,
@@ -168,6 +177,90 @@ async function handleSaveBooking(req, res) {
   }
 }
 
+// Add hotel(s) to Firestore
+async function handleAddHotel(req, res) {
+  try {
+    const hotel = req.body;
+
+    if (!hotel || !hotel.name || !hotel.location) {
+      return res.status(400).json({ error: 'Missing required hotel details (name, location)' });
+    }
+
+    const hotelData = {
+      name: hotel.name,
+      location: hotel.location,
+      rating: hotel.rating || '4.0',
+      price: hotel.price || 100,
+      desc: hotel.desc || '',
+      imageUrl: hotel.imageUrl || '',
+      amenities: hotel.amenities || [],
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    const hotelRef = await admin.firestore().collection('hotels').add(hotelData);
+
+    res.json({
+      success: true,
+      hotelId: hotelRef.id,
+    });
+
+  } catch (err) {
+    console.error('Add hotel error', err);
+    res.status(500).json({ 
+      error: 'Failed to add hotel', 
+      details: String(err) 
+    });
+  }
+}
+
+// Add multiple hotels to Firestore
+async function handleAddHotels(req, res) {
+  try {
+    const hotels = req.body.hotels;
+
+    if (!hotels || !Array.isArray(hotels) || hotels.length === 0) {
+      return res.status(400).json({ error: 'Missing hotels array' });
+    }
+
+    const batch = admin.firestore().batch();
+    const hotelRefs = [];
+
+    for (const hotel of hotels) {
+      if (!hotel.name || !hotel.location) continue;
+      
+      const hotelData = {
+        name: hotel.name,
+        location: hotel.location,
+        rating: hotel.rating || '4.0',
+        price: hotel.price || 100,
+        desc: hotel.desc || '',
+        imageUrl: hotel.imageUrl || '',
+        amenities: hotel.amenities || [],
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      };
+      
+      const docRef = admin.firestore().collection('hotels').doc();
+      batch.set(docRef, hotelData);
+      hotelRefs.push(docRef.id);
+    }
+
+    await batch.commit();
+
+    res.json({
+      success: true,
+      count: hotelRefs.length,
+      hotelIds: hotelRefs,
+    });
+
+  } catch (err) {
+    console.error('Add hotels error', err);
+    res.status(500).json({ 
+      error: 'Failed to add hotels', 
+      details: String(err) 
+    });
+  }
+}
+
 // Webhook handler for Stripe events
 async function handleStripeWebhook(req, res) {
   const sig = req.headers['stripe-signature'];
@@ -192,7 +285,7 @@ async function handleStripeWebhook(req, res) {
       const paymentIntent = event.data.object;
       console.log('Payment succeeded:', paymentIntent.id);
       // Update booking status in Firestore
-      // You can implement this based on your needs
+      
       break;
     case 'payment_intent.payment_failed':
       const failedPayment = event.data.object;
@@ -224,6 +317,8 @@ app.post('/groq-generate', handleGroqGenerate);
 app.post('/generate', handleGroqGenerate);
 app.post('/createPaymentIntent', handleCreatePaymentIntent);
 app.post('/saveBooking', handleSaveBooking);
+app.post('/addHotel', handleAddHotel);
+app.post('/addHotels', handleAddHotels);
 app.post('/stripe-webhook', handleStripeWebhook);
 
 // Only for local testing

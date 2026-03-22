@@ -14,10 +14,12 @@ import 'package:hidmo_app/features/tourist/tour_packages/tour_customizer_screen.
 class TourPackagesScreen extends StatefulWidget {
   final int initialIndex;
   final bool showBottomNav;
+  final bool autoFocus;
   const TourPackagesScreen({
     super.key,
     this.initialIndex = 2,
     this.showBottomNav = true,
+    this.autoFocus = false,
   });
 
   @override
@@ -330,14 +332,37 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
   // Filter logic
   List<Map<String, dynamic>> _getFilteredPackages() {
     if (_searchQuery.isEmpty) return [];
+    final query = _searchQuery.toLowerCase();
     return _allPackages.where((package) {
-      return package["title"].toLowerCase().contains(
-        _searchQuery.toLowerCase(),
-      );
+      final title = package["title"]?.toString().toLowerCase() ?? '';
+      final description =
+          package["description"]?.toString().toLowerCase() ?? '';
+      final price = package["price"]?.toString().toLowerCase() ?? '';
+      return title.contains(query) ||
+          description.contains(query) ||
+          price.contains(query);
     }).toList();
   }
 
   void _handleSeeMoreAction() {}
+
+  void _navigateToPackageDetail(Map<String, dynamic> package) {
+    final title = package['title'] as String? ?? '';
+    final rating = package['rating'] as String? ?? '4.8';
+    final image = package['image'] as String? ?? '';
+    final price = package['price'] as String? ?? '';
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => TourPackageDetailScreen(
+          title: title,
+          rating: rating,
+          images: image.isNotEmpty ? [image] : const [],
+          budgetUsd: price.isNotEmpty ? '$price per person' : '',
+        ),
+      ),
+    );
+  }
 
   void _openEmeraldWellnessDetail() {
     Navigator.of(
@@ -537,24 +562,37 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(30),
+                border: Border.all(color: Colors.grey.shade300, width: 1),
               ),
               child: TextField(
                 controller: _searchController,
+                autofocus: widget.autoFocus,
                 onChanged: (value) {
                   setState(() {
                     _searchQuery = value;
                   });
                 },
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: "Where will you wander today?",
-                  hintStyle: TextStyle(
+                  hintStyle: const TextStyle(
                     color: Colors.grey,
                     fontSize: 16,
                     fontFamily: 'inter',
                   ),
-                  prefixIcon: Icon(Icons.search, color: Colors.black54),
+                  prefixIcon: const Icon(Icons.search, color: Colors.black54),
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, color: Colors.grey),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() {
+                              _searchQuery = '';
+                            });
+                          },
+                        )
+                      : null,
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(vertical: 13),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 13),
                 ),
               ),
             ),
@@ -589,7 +627,7 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         child: GestureDetector(
-          onTap: _handleSeeMoreAction,
+          onTap: () => _navigateToPackageDetail(item),
           child: _buildPackageCard(
             imagePath: item["image"],
             title: item["title"],
@@ -600,7 +638,7 @@ class _TourPackagesScreenState extends State<TourPackagesScreen> {
             onFavoriteTap: () {
               _toggleFavorite(item["id"] as String);
             },
-            onSeeMore: _handleSeeMoreAction,
+            onSeeMore: () => _navigateToPackageDetail(item),
           ),
         ),
       );

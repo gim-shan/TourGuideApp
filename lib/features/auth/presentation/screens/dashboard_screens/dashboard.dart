@@ -508,10 +508,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           SafeArea(
-            child: TourPackagesScreen(initialIndex: 2, showBottomNav: false),
+            child: TourPackagesScreen(
+              initialIndex: 2,
+              showBottomNav: false,
+              autoFocus: false,
+            ),
           ),
           SafeArea(
-            child: TourPackagesScreen(initialIndex: 3, showBottomNav: false),
+            child: TourPackagesScreen(
+              initialIndex: 3,
+              showBottomNav: false,
+              autoFocus: false,
+            ),
           ),
         ],
       ),
@@ -825,7 +833,8 @@ Widget _buildFeatureGrid(BuildContext context) {
           } else if (title == "Tour Packages") {
             Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (_) => TourPackagesScreen(initialIndex: 2),
+                builder: (_) =>
+                    const TourPackagesScreen(initialIndex: 2, autoFocus: false),
               ),
             );
             return;

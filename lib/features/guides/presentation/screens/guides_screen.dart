@@ -32,7 +32,14 @@ class _GuidesScreenState extends State<GuidesScreen> {
         _error = null;
       });
 
-      final guides = await _guideService.getAllGuides();
+      // Get real guides from Firestore
+      final realGuides = await _guideService.getAllGuides();
+
+      // Get dummy guides
+      final dummyGuides = GuideProfileService.getDummyGuides();
+
+      // Combine real guides + dummy guides (always show both)
+      final guides = [...realGuides, ...dummyGuides];
 
       setState(() {
         _guides = guides;
